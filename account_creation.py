@@ -22,9 +22,8 @@ from settings.pinterest_keywords import categories, modifiers
 def randomize_first_letter_case(text):
     if not text:
         return ""
-    first_char = random.choice([text[0].upper(), text[0].lower()])
-    return first_char + text[1:]
-
+    result = random.choices([text, text.lower(), text.upper()], [0.475, 0.475, 0.05])[0]
+    return result
 
 def manipulate_username(username):
     if not username:
@@ -36,16 +35,15 @@ def manipulate_username(username):
     current_username_list = list(username)
 
     for i in range(n_changes):
-        # Refresh possible operations based on current state
         possible_ops = []
         if len(current_username_list) > 0:
             possible_ops.append('add')
         if len(current_username_list) > 1:
             possible_ops.append('delete')
-            possible_ops.append('swap') # Swap adjacent
+            possible_ops.append('swap')
 
         if not possible_ops:
-            break # Cannot perform any more operations
+            break
 
         op = random.choice(possible_ops)
 
@@ -54,7 +52,7 @@ def manipulate_username(username):
                 del_index = random.randrange(len(current_username_list))
                 del current_username_list[del_index]
             elif op == 'add':
-                add_char = random.choice(string.ascii_lowercase) # Add lowercase letter
+                add_char = random.choice(string.ascii_lowercase)
                 add_index = random.randrange(len(current_username_list) + 1)
                 current_username_list.insert(add_index, add_char)
             elif op == 'swap':
@@ -62,35 +60,22 @@ def manipulate_username(username):
                 current_username_list[swap_index], current_username_list[swap_index + 1] = current_username_list[swap_index + 1], current_username_list[swap_index]
         except IndexError:
              print(f"Warning: IndexError during username manipulation ('{op}' on '{''.join(current_username_list)}'). Skipping change.")
-             continue # Skip this change if index was bad
-
-
+             continue
     modified_username = "".join(current_username_list)
-
-    # Ensure it's different from original, force if needed
     if modified_username == original_username:
         modified_username += str(random.randint(0, 9))
-        # If still same (e.g., empty string?), return original or a default
         if modified_username == original_username:
-             return original_username + "_mod" # Very unlikely fallback
+             return original_username + "_mod"
 
     return modified_username
 
 
 def get_username(scraped_username, csv_filepath='users.csv'):
-	"""Gets a name or manipulated username from CSV or falls back to a scraped username.
-
-	Args:
-		scraped_username (str): The username scraped from the website.
-		csv_filepath (str): The path to the CSV file containing usernames and names.
-
-	Returns:
-		str: The chosen username or name.
-	"""
 	scraped_username = scraped_username.strip()
 	selected_final_value = None
+	third_column_value = None
 	rows = []
-
+	pin = True
 	try:
 		if os.path.exists(csv_filepath):
 			with open(csv_filepath, 'r', newline='', encoding='utf-8') as f:
@@ -102,16 +87,19 @@ def get_username(scraped_username, csv_filepath='users.csv'):
 				username = rows[chosen_row_index][0].strip()
 				name = rows[chosen_row_index][1].strip()
 
+				# Get third column value if it exists
+				if len(rows[chosen_row_index]) >= 3:
+					third_column_value = rows[chosen_row_index][2].strip()
+
 				if random.choice([True, False]):
-					# Use and manipulate username
 					selected_final_value = manipulate_username(username)
+					pin = False
 					print(f"Using manipulated username: {selected_final_value}")
 				else:
-					# Use full name as-is
 					selected_final_value = name
 					print(f"Using full name: {selected_final_value}")
 
-				# Remove the used row
+				# Remove used row
 				del rows[chosen_row_index]
 
 				# Save remaining rows back to CSV
@@ -125,7 +113,7 @@ def get_username(scraped_username, csv_filepath='users.csv'):
 	except Exception as e:
 		print(f"Error processing {csv_filepath}: {e}")
 
-	# Fallback to scraped username if needed
+	# Fallback if no valid value was chosen
 	if not selected_final_value:
 		if scraped_username:
 			selected_final_value = scraped_username
@@ -134,27 +122,34 @@ def get_username(scraped_username, csv_filepath='users.csv'):
 			selected_final_value = "DefaultUsername"
 			print("Warning: No valid data. Using default username.")
 
-	return selected_final_value
+	return [selected_final_value, third_column_value, pin]
 
 
 scraper = cloudscraper.create_scraper()
 url = "https://app.circle.so/api/v1/community_members"
 
-
 def create_driver():
     global driver
-    driver = Driver(uc=True, incognito=True, headless=False)
+    driver = Driver(uc=True, incognito=True, headless=True)
     return driver
 
-
-def pinterest(name):
+def pinterest(name,gender,add):
     try:
         pinterest_keywords = [f"{cat} {mod}" for cat in categories for mod in modifiers]
         driver = create_driver()
         WebDriverWait(driver, 60)
         key = random.choices([random.choice(pinterest_keywords), name], [0.6, 0.4])[0]
-        print(f"Searching Pinterest for: {key}")
-        driver.get(f"https://www.pinterest.com/search/pins/?q={key}")
+        
+        if add:
+            search = f"{key} {gender}"
+            print(f"Searching Pinterest for: {search}")
+            url = f"https://www.pinterest.com/search/pins/?q={search}"
+            driver.get(url)
+        else:
+            print(f"Searching Pinterest for: {key}")
+            url = f"https://www.pinterest.com/search/pins/?q={key}"
+            driver.get(url)
+        print(url)
         for _ in range(1):
             time.sleep(1.5)
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -182,7 +177,7 @@ def pinterest(name):
         driver.quit()
         print(f"Error: {e}")
         time.sleep(1)
-        pinterest(name)
+        pinterest(name,gender,add)
 
 
 def get_next_sibling_text(label_text, soup):
@@ -192,27 +187,26 @@ def get_next_sibling_text(label_text, soup):
     else:
         return "Label not found."
 
+def get_job(scraper):
+    while True:
+        url = "https://writingexercises.co.uk/php_WE/job.php?_=1745167420134"
+        job = scraper.get(url)
+        if job.text == "Fisherman/woman":
+            continue
+        return randomize_first_letter_case(job.text)
 
 def scrap_person_data():
     try:
         url = "https://www.fakepersongenerator.com/Index/generate"
         response = scraper.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
-
-
         image_srcs = [tag['src'] for tag in soup.find_all(src=lambda s: s and s.startswith('/Face'))]
         avatar_url = f"https://www.fakepersongenerator.com{image_srcs[0]}" if image_srcs else None
-
-        job_label = soup.find("span", string=lambda t: t and t.strip() == "Occupation(Job Title)")
-        if job_label:
-            info_div = job_label.find_parent("div", class_="info-title")
-            next_div = info_div.find_next_sibling() if info_div else None
-            headline = next_div.find("input")["value"] if next_div and next_div.find("input") else ""
-
+        headline = get_job(scraper)
         bio_labels = ["Online Status", "Online Signature", "Online Biography"]
         bios = [get_next_sibling_text(label, soup) for label in bio_labels if get_next_sibling_text(label, soup)]
+        bios.append("")
         selected_bio = random.choice(bios) if bios else ""
-
         gender = city = ""
         details_div = soup.find("div", class_="col-md-8 col-sm-6 col-xs-12")
         if details_div:
@@ -221,17 +215,18 @@ def scrap_person_data():
                 gender = text.split("Gender:")[1].split()[0].strip()
             if "City, State, Zip:" in text:
                 city = text.split("City, State, Zip:")[1].split(",")[0].strip()
-
         raw_username = get_next_sibling_text("Username", soup)
         job_title_input = ["",headline]
         job_title_input = random.choice(job_title_input)
         final_username = get_username(raw_username)
-        pin_img = pinterest(final_username)
+        print(final_username[0])
+        print(final_username[1])
+        print(final_username[2])
+        pin_img = pinterest(final_username[0],final_username[1],final_username[2])
         image_url = random.choice([avatar_url, pin_img])
         imgur_url = imgur_uploader(scraper, image_url)
         image = random.choices([imgur_url, " "], [0.9, 0.1])[0]
-        return final_username, gender, selected_bio, job_title_input, city, imgur_url
-
+        return final_username[0], gender, selected_bio, job_title_input, city, image
     except Exception as e:
         print("Error:", e)
         restart_warp()
@@ -241,7 +236,7 @@ def get_mail(x=None):
     global wait, driver, circle, mail, tabs
     if x == "mail":
         driver = create_driver()
-        wait = WebDriverWait(driver, 60)
+        wait = WebDriverWait(driver, 601)
         driver.get('https://minmail.app/10-minute-mail')
         driver.execute_script("window.open('https://login.circle.so/sign_in?request_host=app.circle.so#email', '_blank');")
         tabs = driver.window_handles
@@ -284,30 +279,42 @@ def activate_user(email, pw):
 
 
 def create_person():
-    payload = {
-        "email": mailstring,
-        "password": pw,
-        "name": fullname,
-        "bio": bio,
-        "headline": headline,
-        "avatar": avatar,
-        "community_id": "337793",
-        "space_ids": [1987412],
-        "skip_invitation": False,
-    }
-    headers = {'Authorization': 'Token ceLDhha7NKK6QMY2LU79B6EPc7LuUfrz'}
-    response = requests.request("POST", url, headers=headers, data=payload)
-    print(response.json())
-    return
-
+    while True:
+        try:
+            payload = {
+                "email": mailstring,
+                "password": pw,
+                "name": fullname,
+                "bio": bio,
+                "headline": headline,
+                "avatar": avatar,
+                "community_id": "337793",
+                "space_ids": [1987412],
+                "skip_invitation": False,
+            }
+            headers = {'Authorization': 'Token ceLDhha7NKK6QMY2LU79B6EPc7LuUfrz'}
+            response = requests.request("POST", url, headers=headers, data=payload)
+            print(response.json())
+            return
+        except Exception as e:
+            print(e)
+            continue
 
 create_db()
+count = 0
 while True:
-    name_list, gender, bio, headline, city, avatar = scrap_person_data()
-    fullname = name_list
-    print("Fullname: ", fullname)
-    mailstring = get_mail(x="mail")
-    pw = generate_password()
-    create_person()
-    activate_user(email=mailstring, pw=pw)
-    insert_users(fullname, mailstring, pw, bio, headline, avatar)
+    try:
+        count +=1
+        name_list, gender, bio, headline, city, avatar = scrap_person_data()
+        fullname = name_list
+        print("Fullname: ", fullname)
+        mailstring = get_mail(x="mail")
+        pw = generate_password()
+        create_person()
+        activate_user(email=mailstring, pw=pw)
+        insert_users(fullname, mailstring, pw, bio, headline, avatar)
+        print(count)
+        if count == 50:
+            break
+    except Exception as e:
+        print(e)
