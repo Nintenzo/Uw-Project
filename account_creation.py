@@ -78,67 +78,63 @@ def manipulate_username(username):
 
 
 def get_username(scraped_username, csv_filepath='users.csv'):
-    """Gets a username, choosing between scraped and one from a CSV file.
+	"""Gets a name or manipulated username from CSV or falls back to a scraped username.
 
-    Args:
-        scraped_username (str): The username scraped from the website.
-        csv_filepath (str): The path to the CSV file containing usernames.
+	Args:
+		scraped_username (str): The username scraped from the website.
+		csv_filepath (str): The path to the CSV file containing usernames and names.
 
-    Returns:
-        str: The chosen username.
-    """
-    scraped_username = scraped_username.strip()
-    chosen_original_csv_username = None # Track the originally chosen CSV username
-    manipulated_csv_username = None   # Track the modified version
-    read_usernames = []
+	Returns:
+		str: The chosen username or name.
+	"""
+	scraped_username = scraped_username.strip()
+	selected_final_value = None
+	rows = []
 
-    try:
-        if os.path.exists(csv_filepath):
-            with open(csv_filepath, 'r', newline='', encoding='utf-8') as f:
-                reader = csv.reader(f)
-                read_usernames = [row[0].strip() for row in reader if row and row[0].strip()]
+	try:
+		if os.path.exists(csv_filepath):
+			with open(csv_filepath, 'r', newline='', encoding='utf-8') as f:
+				reader = csv.reader(f)
+				rows = [row for row in reader if len(row) >= 2 and row[0].strip() and row[1].strip()]
 
-            if read_usernames:
-                chosen_original_csv_username = random.choice(read_usernames)
-                # Manipulate the chosen CSV username
-                manipulated_csv_username = manipulate_username(chosen_original_csv_username)
-                print(f"CSV User: Original='{chosen_original_csv_username}', Manipulated='{manipulated_csv_username}'") # Debug info
-        else:
-            print(f"Warning: {csv_filepath} not found.")
+			if rows:
+				chosen_row_index = random.randint(0, len(rows) - 1)
+				username = rows[chosen_row_index][0].strip()
+				name = rows[chosen_row_index][1].strip()
 
-    except Exception as e:
-        print(f"Error reading/processing {csv_filepath}: {e}")
+				if random.choice([True, False]):
+					# Use and manipulate username
+					selected_final_value = manipulate_username(username)
+					print(f"Using manipulated username: {selected_final_value}")
+				else:
+					# Use full name as-is
+					selected_final_value = name
+					print(f"Using full name: {selected_final_value}")
 
-    # --- Decide final username ---
-    options = []
-    if scraped_username:
-        options.append(scraped_username)
-    if manipulated_csv_username: # Use the manipulated username as an option
-        options.append(manipulated_csv_username)
+				# Remove the used row
+				del rows[chosen_row_index]
 
-    if not options:
-        print("Warning: No valid usernames available. Using default.")
-        return "DefaultUsername"
+				# Save remaining rows back to CSV
+				with open(csv_filepath, 'w', newline='', encoding='utf-8') as f:
+					writer = csv.writer(f)
+					writer.writerows(rows)
+			else:
+				print(f"Warning: No valid rows in {csv_filepath}.")
+		else:
+			print(f"Warning: {csv_filepath} not found.")
+	except Exception as e:
+		print(f"Error processing {csv_filepath}: {e}")
 
-    final_username = random.choice(options)
-    print(f"Final Username Chosen: '{final_username}'")
+	# Fallback to scraped username if needed
+	if not selected_final_value:
+		if scraped_username:
+			selected_final_value = scraped_username
+			print(f"Fallback to scraped username: {selected_final_value}")
+		else:
+			selected_final_value = "DefaultUsername"
+			print("Warning: No valid data. Using default username.")
 
-    # --- Remove ORIGINAL from CSV if MANIPULATED CSV username was selected ---
-    if final_username == manipulated_csv_username and chosen_original_csv_username is not None:
-        print(f"Manipulated username '{final_username}' (from '{chosen_original_csv_username}') selected. Removing original from CSV...")
-        # Use the originally read list to filter from
-        remaining_usernames = [u for u in read_usernames if u != chosen_original_csv_username]
-        try:
-            with open(csv_filepath, 'w', newline='', encoding='utf-8') as f:
-                writer = csv.writer(f)
-                for username in remaining_usernames:
-                    writer.writerow([username])
-            print(f"Original '{chosen_original_csv_username}' removed from {csv_filepath}.")
-        except Exception as e:
-            print(f"Error writing back to {csv_filepath}: {e}")
-            # Consider how to handle this: the username was used but not removed.
-
-    return final_username
+	return selected_final_value
 
 
 scraper = cloudscraper.create_scraper()
@@ -151,25 +147,23 @@ def create_driver():
     return driver
 
 
-def pinterest():
+def pinterest(name):
     try:
         pinterest_keywords = [f"{cat} {mod}" for cat in categories for mod in modifiers]
         driver = create_driver()
         WebDriverWait(driver, 60)
-        key = random.choice(pinterest_keywords)
-        print(key)
+        key = random.choices([random.choice(pinterest_keywords), name], [0.6, 0.4])[0]
         print(f"Searching Pinterest for: {key}")
         driver.get(f"https://www.pinterest.com/search/pins/?q={key}")
         for _ in range(1):
             time.sleep(1.5)
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(3)
         image_urls = []
         for _ in range(10):
             try:
                 images_containers = driver.find_elements(By.CSS_SELECTOR, ".Yl-.MIw.Hb7")
-                numbers = []
-                for x in range(0, len(images_containers)):
-                    numbers.append(x)
+                numbers = [x for x in range(0, len(images_containers))]
                 for x in numbers:
                     if images_containers:
                         n = random.choice(numbers)
@@ -180,15 +174,15 @@ def pinterest():
                         print("No image containers found.")
             except Exception as e:
                 print(f"Error while fetching images: {e}")
-
         image_urls = list(set(image_urls))
         img = random.choice(image_urls)
         driver.quit()
         return img
-    except Exception:
+    except Exception as e:
         driver.quit()
+        print(f"Error: {e}")
         time.sleep(1)
-        pinterest()
+        pinterest(name)
 
 
 def get_next_sibling_text(label_text, soup):
@@ -205,28 +199,20 @@ def scrap_person_data():
         response = scraper.get(url)
         soup = BeautifulSoup(response.text, "html.parser")
 
-        # Name
-        full_name = soup.select_one('.click').text.replace("\xa0", " ")
 
-
-        # Avatar image
         image_srcs = [tag['src'] for tag in soup.find_all(src=lambda s: s and s.startswith('/Face'))]
         avatar_url = f"https://www.fakepersongenerator.com{image_srcs[0]}" if image_srcs else None
 
-        # Headline (Job Title)
-        job_title_input = None
         job_label = soup.find("span", string=lambda t: t and t.strip() == "Occupation(Job Title)")
         if job_label:
             info_div = job_label.find_parent("div", class_="info-title")
             next_div = info_div.find_next_sibling() if info_div else None
-            job_title_input = next_div.find("input")["value"] if next_div and next_div.find("input") else ""
+            headline = next_div.find("input")["value"] if next_div and next_div.find("input") else ""
 
-        # Bio options
         bio_labels = ["Online Status", "Online Signature", "Online Biography"]
         bios = [get_next_sibling_text(label, soup) for label in bio_labels if get_next_sibling_text(label, soup)]
         selected_bio = random.choice(bios) if bios else ""
 
-        # Gender and city
         gender = city = ""
         details_div = soup.find("div", class_="col-md-8 col-sm-6 col-xs-12")
         if details_div:
@@ -236,68 +222,19 @@ def scrap_person_data():
             if "City, State, Zip:" in text:
                 city = text.split("City, State, Zip:")[1].split(",")[0].strip()
 
-        # --- Process Username ---
-        # Get raw username from scraping
         raw_username = get_next_sibling_text("Username", soup)
-        # Get the final username (potentially from CSV, with removal logic)
-        final_username = get_username(raw_username) # Calls the new function
-
-        # --- Generate Name Variations ---
-        potential_manipulated_names = []
-        if full_name:
-            parts = full_name.split()
-            first_name = parts[0] if parts else ""
-            last_name = parts[-1] if len(parts) > 1 else ""
-
-            if full_name.strip():
-                potential_manipulated_names.append(full_name.strip())
-                potential_manipulated_names.append(randomize_first_letter_case(full_name.strip()))
-            if first_name.strip():
-                potential_manipulated_names.append(first_name.strip())
-                if last_name.strip():
-                    potential_manipulated_names.append(f"{first_name.strip()} {last_name.strip()}")
-                    potential_manipulated_names.append(f"{first_name.strip()} {last_name.strip()[0]}.")
-
-        if not potential_manipulated_names:
-            potential_manipulated_names.append(full_name.strip() if full_name else "")
-
-        # --- Choose one manipulated name (with weighting) ---
-        if len(potential_manipulated_names) > 1:
-            weights = []
-            original_weight = 1
-            other_weight = 5
-            original_full_name_str = full_name.strip() if full_name else ""
-
-            for name_option in potential_manipulated_names:
-                if name_option == original_full_name_str:
-                    weights.append(original_weight)
-                else:
-                    weights.append(other_weight)
-
-            if len(weights) == len(potential_manipulated_names):
-                manipulated_name = random.choices(potential_manipulated_names, weights=weights, k=1)[0]
-            else:
-                print("Warning: Weight/Name list mismatch. Falling back to equal choice.")
-                manipulated_name = random.choice(potential_manipulated_names)
-        elif potential_manipulated_names:
-            manipulated_name = potential_manipulated_names[0]
-        else:
-            manipulated_name = "DefaultManipulatedName"
-
-        # --- Final list for selection (Manipulated Name OR Final Username) ---
-        name_options = [name for name in [manipulated_name, final_username] if name]
-        if not name_options:
-            name_options = ["DefaultName"]
-
-        pin_img = pinterest()
+        job_title_input = ["",headline]
+        job_title_input = random.choice(job_title_input)
+        final_username = get_username(raw_username)
+        pin_img = pinterest(final_username)
         image_url = random.choice([avatar_url, pin_img])
         imgur_url = imgur_uploader(scraper, image_url)
-        return name_options, gender, selected_bio, job_title_input, city, imgur_url
+        image = random.choices([imgur_url, " "], [0.9, 0.1])[0]
+        return final_username, gender, selected_bio, job_title_input, city, imgur_url
 
     except Exception as e:
         print("Error:", e)
-        return ["DefaultName"], "", "", "", "", ""
-        # restart_warp()
+        restart_warp()
 
 
 def get_mail(x=None):
@@ -367,7 +304,7 @@ def create_person():
 create_db()
 while True:
     name_list, gender, bio, headline, city, avatar = scrap_person_data()
-    fullname = random.choice(name_list)
+    fullname = name_list
     print("Fullname: ", fullname)
     mailstring = get_mail(x="mail")
     pw = generate_password()
