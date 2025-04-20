@@ -1,0 +1,34 @@
+import sqlite3
+conn = sqlite3.connect("circle_users.db")
+cursor = conn.cursor()
+
+
+def create_db():
+    global cursor, conn
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        password TEXT,
+        bio TEXT,
+        headline TEXT,
+        avatar TEXT
+    )
+    """)
+    return
+
+
+def insert_users(name, email, password, bio, headline, avatar):
+    global cursor, conn
+    try:
+        cursor.execute("""
+        INSERT INTO users (name, email, password, bio, headline, avatar)
+        VALUES (?, ?, ?, ?, ?, ?)
+
+        """, (name, email, password, bio, headline, avatar))
+        conn.commit()
+        print("Data inserted successfully!")
+    except sqlite3.Error as e:
+        print(f"Error inserting data: {e}")
+    return
