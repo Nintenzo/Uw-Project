@@ -2,6 +2,9 @@ import requests
 import re
 import time
 import random
+import csv
+import os
+import string
 import cloudscraper
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
@@ -15,12 +18,128 @@ from services.password_service import generate_password
 from services.imgur_service import imgur_uploader
 from settings.pinterest_keywords import categories, modifiers
 
-# Helper function for random first letter capitalization
+
 def randomize_first_letter_case(text):
     if not text:
         return ""
     first_char = random.choice([text[0].upper(), text[0].lower()])
     return first_char + text[1:]
+
+
+def manipulate_username(username):
+    if not username:
+        return ""
+
+    original_username = username
+    n_changes = random.randint(1, 2)
+    possible_ops = []
+    current_username_list = list(username)
+
+    for i in range(n_changes):
+        # Refresh possible operations based on current state
+        possible_ops = []
+        if len(current_username_list) > 0:
+            possible_ops.append('add')
+        if len(current_username_list) > 1:
+            possible_ops.append('delete')
+            possible_ops.append('swap') # Swap adjacent
+
+        if not possible_ops:
+            break # Cannot perform any more operations
+
+        op = random.choice(possible_ops)
+
+        try:
+            if op == 'delete':
+                del_index = random.randrange(len(current_username_list))
+                del current_username_list[del_index]
+            elif op == 'add':
+                add_char = random.choice(string.ascii_lowercase) # Add lowercase letter
+                add_index = random.randrange(len(current_username_list) + 1)
+                current_username_list.insert(add_index, add_char)
+            elif op == 'swap':
+                swap_index = random.randrange(len(current_username_list) - 1)
+                current_username_list[swap_index], current_username_list[swap_index + 1] = current_username_list[swap_index + 1], current_username_list[swap_index]
+        except IndexError:
+             print(f"Warning: IndexError during username manipulation ('{op}' on '{''.join(current_username_list)}'). Skipping change.")
+             continue # Skip this change if index was bad
+
+
+    modified_username = "".join(current_username_list)
+
+    # Ensure it's different from original, force if needed
+    if modified_username == original_username:
+        modified_username += str(random.randint(0, 9))
+        # If still same (e.g., empty string?), return original or a default
+        if modified_username == original_username:
+             return original_username + "_mod" # Very unlikely fallback
+
+    return modified_username
+
+
+def get_username(scraped_username, csv_filepath='users.csv'):
+    """Gets a username, choosing between scraped and one from a CSV file.
+
+    Args:
+        scraped_username (str): The username scraped from the website.
+        csv_filepath (str): The path to the CSV file containing usernames.
+
+    Returns:
+        str: The chosen username.
+    """
+    scraped_username = scraped_username.strip()
+    chosen_original_csv_username = None # Track the originally chosen CSV username
+    manipulated_csv_username = None   # Track the modified version
+    read_usernames = []
+
+    try:
+        if os.path.exists(csv_filepath):
+            with open(csv_filepath, 'r', newline='', encoding='utf-8') as f:
+                reader = csv.reader(f)
+                read_usernames = [row[0].strip() for row in reader if row and row[0].strip()]
+
+            if read_usernames:
+                chosen_original_csv_username = random.choice(read_usernames)
+                # Manipulate the chosen CSV username
+                manipulated_csv_username = manipulate_username(chosen_original_csv_username)
+                print(f"CSV User: Original='{chosen_original_csv_username}', Manipulated='{manipulated_csv_username}'") # Debug info
+        else:
+            print(f"Warning: {csv_filepath} not found.")
+
+    except Exception as e:
+        print(f"Error reading/processing {csv_filepath}: {e}")
+
+    # --- Decide final username ---
+    options = []
+    if scraped_username:
+        options.append(scraped_username)
+    if manipulated_csv_username: # Use the manipulated username as an option
+        options.append(manipulated_csv_username)
+
+    if not options:
+        print("Warning: No valid usernames available. Using default.")
+        return "DefaultUsername"
+
+    final_username = random.choice(options)
+    print(f"Final Username Chosen: '{final_username}'")
+
+    # --- Remove ORIGINAL from CSV if MANIPULATED CSV username was selected ---
+    if final_username == manipulated_csv_username and chosen_original_csv_username is not None:
+        print(f"Manipulated username '{final_username}' (from '{chosen_original_csv_username}') selected. Removing original from CSV...")
+        # Use the originally read list to filter from
+        remaining_usernames = [u for u in read_usernames if u != chosen_original_csv_username]
+        try:
+            with open(csv_filepath, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                for username in remaining_usernames:
+                    writer.writerow([username])
+            print(f"Original '{chosen_original_csv_username}' removed from {csv_filepath}.")
+        except Exception as e:
+            print(f"Error writing back to {csv_filepath}: {e}")
+            # Consider how to handle this: the username was used but not removed.
+
+    return final_username
+
 
 scraper = cloudscraper.create_scraper()
 url = "https://app.circle.so/api/v1/community_members"
@@ -88,7 +207,7 @@ def scrap_person_data():
 
         # Name
         full_name = soup.select_one('.click').text.replace("\xa0", " ")
-        
+
 
         # Avatar image
         image_srcs = [tag['src'] for tag in soup.find_all(src=lambda s: s and s.startswith('/Face'))]
@@ -117,8 +236,11 @@ def scrap_person_data():
             if "City, State, Zip:" in text:
                 city = text.split("City, State, Zip:")[1].split(",")[0].strip()
 
-        # Username
-        username = get_next_sibling_text("Username", soup)
+        # --- Process Username ---
+        # Get raw username from scraping
+        raw_username = get_next_sibling_text("Username", soup)
+        # Get the final username (potentially from CSV, with removal logic)
+        final_username = get_username(raw_username) # Calls the new function
 
         # --- Generate Name Variations ---
         potential_manipulated_names = []
@@ -137,14 +259,33 @@ def scrap_person_data():
                     potential_manipulated_names.append(f"{first_name.strip()} {last_name.strip()[0]}.")
 
         if not potential_manipulated_names:
-            potential_manipulated_names.append(full_name.strip() if full_name else "") # Fallback
+            potential_manipulated_names.append(full_name.strip() if full_name else "")
 
-        manipulated_name = random.choice(potential_manipulated_names)
+        # --- Choose one manipulated name (with weighting) ---
+        if len(potential_manipulated_names) > 1:
+            weights = []
+            original_weight = 1
+            other_weight = 5
+            original_full_name_str = full_name.strip() if full_name else ""
 
-        username = username.strip() if username else ""
-        print("Username: ", username)
+            for name_option in potential_manipulated_names:
+                if name_option == original_full_name_str:
+                    weights.append(original_weight)
+                else:
+                    weights.append(other_weight)
 
-        name_options = [name for name in [manipulated_name, username] if name]
+            if len(weights) == len(potential_manipulated_names):
+                manipulated_name = random.choices(potential_manipulated_names, weights=weights, k=1)[0]
+            else:
+                print("Warning: Weight/Name list mismatch. Falling back to equal choice.")
+                manipulated_name = random.choice(potential_manipulated_names)
+        elif potential_manipulated_names:
+            manipulated_name = potential_manipulated_names[0]
+        else:
+            manipulated_name = "DefaultManipulatedName"
+
+        # --- Final list for selection (Manipulated Name OR Final Username) ---
+        name_options = [name for name in [manipulated_name, final_username] if name]
         if not name_options:
             name_options = ["DefaultName"]
 
