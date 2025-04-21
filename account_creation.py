@@ -187,12 +187,12 @@ def pinterest(name, gender, add):
         key = random.choices([random.choice(pinterest_keywords), name], [0.6, 0.4])[0]
         
         if add:
-            search = f"{key} {gender}".replace(" ","%20")
-            print(f"Searching Pinterest for: {search.replace("%20"," ")}")
+            search = f"{key} {gender}"
+            print(f"Searching Pinterest for: {search}")
             url = f"https://www.pinterest.com/search/pins/?q={search}"
             driver.get(url)
         else:
-            search = key.replace(" ","%20")
+            search = key
             print(f"Searching Pinterest for: {key}")
             url = f"https://www.pinterest.com/search/pins/?q={key}"
             driver.get(url)
@@ -219,7 +219,7 @@ def pinterest(name, gender, add):
         image_urls = list(set(image_urls))
         img = random.choice(image_urls)
         driver.quit()
-        search = search.replace("%20", " ")
+        search = search
         return img, search
     except Exception as e:
         driver.quit()
@@ -241,11 +241,10 @@ def scrap_person_data():
         original_gender = random.choice(["male","female"])
         final_identity = original_gender
         pronouns = None
-        if random.randint(1, 100) <= 90.3:
+        if random.randint(1, 100) <= 9.3:
             final_identity = random.choice(LGBT_IDENTITIES)
             pronouns = get_pronouns(final_identity, original_gender)
             print(f"Selected LGBT Identity: {final_identity}, Pronouns: {pronouns}")
-            #selected_bio = get_bio(input1=f"{final_identity} {pronouns}")
         else:
             final_identity = original_gender
             print(f"Selected Identity: {final_identity}")
