@@ -17,8 +17,8 @@ from services.db_service import create_db, insert_users
 from services.password_service import generate_password
 from services.imgur_service import imgur_uploader
 from settings.pinterest_keywords import categories, modifiers
+from settings.cities import uscities
 from identity_data import LGBT_IDENTITIES, get_pronouns
-
 
 def randomize_first_letter_case(text):
     if not text:
@@ -71,78 +71,21 @@ def manipulate_username(username):
 
     return modified_username
 
-
-def format_bio_with_pronouns(bio, pronouns):
-    """Generates a bio string including pronouns in a variety of more human formats."""
-    bio = bio.strip() if bio else ""
-    pronouns = pronouns.strip() if pronouns else None
-
-    if not pronouns:
-        return bio
-
-    emoji_list = ["✨", "😊", "🌱", "🏳️‍🌈", "🏳️‍⚧️", "💖", "✌️", "👋"]
-    add_emoji = random.random() < 0.3
-
-    # Expanded list of pronoun introducers
-    pronoun_keywords = [
-        "Pronouns:", "pronouns:", "p:", "My pronouns:", "Pronouns",
-        "pronouns",
-        "Uses",
-        "Prefers"
-    ]
-    chosen_keyword = random.choice(pronoun_keywords)
-    # Occasionally remove colon if present
-    if random.random() < 0.2 and chosen_keyword.endswith(":"):
-        chosen_keyword = chosen_keyword[:-1]
-
-    # Formats when the original bio is empty
-    pronoun_only_formats = [
-        f"{pronouns}",
-        f"{chosen_keyword} {pronouns}",
-        f"({pronouns})",
-        f"[{pronouns}]",
-        f"Just {pronouns}",
-        f"Call me {pronouns}!",
-        f"Respect the {pronouns}",
-        f"{pronouns.capitalize()}"
-    ]
-
-    # Split combined formats for balanced selection
-    formats_pronouns_first = [
-        f"{chosen_keyword} {pronouns}. {bio}",
-        f"[{pronouns}] {bio}",
-        f"({pronouns}) {bio}",
-        f"{pronouns} || {bio}",
-        f"{pronouns} ~ {bio}",
-        f"{pronouns.capitalize()} | {bio}"
-    ]
-    formats_bio_first = [
-        f"{bio} ({pronouns})",
-        f"{bio} [{pronouns}]",
-        f"{bio} | {pronouns}",
-        f"{bio} - {pronouns}",
-        f"{bio} ({chosen_keyword} {pronouns})",
-        f"{bio} (my pronouns are {pronouns})",
-        f"{bio}. {chosen_keyword} {pronouns}.",
-        f"{bio} // {pronouns}",
-        f"{bio}. ({pronouns})"
-    ]
-
-    if not bio:
-        formatted_bio = random.choice(pronoun_only_formats)
-    else:
-        if random.choice([True, False]):
-            formatted_bio = random.choice(formats_pronouns_first)
-        else:
-            formatted_bio = random.choice(formats_bio_first)
-
-    if add_emoji:
-        formatted_bio += f" {random.choice(emoji_list)}"
-
-    return formatted_bio.strip()
+def get_bio(input1):
+    url = "https://www.hootsuite.com/api/contentGenerator"
+    payload = {"dropdown1": "Instagram",
+            "dropdown2": "Personal",
+            "dropdown3": "None",
+            "id": "rUQh7Ij1GC8Nxprlng4JY",
+            "input1": input1,
+            "input2": "",
+            "locale": "en-US"}
+    request = requests.get(url, data=payload)
+    request = request.json()
+    return request.get('results')[random.randint(1,2)][3:]
 
 
-def get_username(target_identity, original_gender, scraped_username, csv_filepath='users.csv'):
+def get_username(target_identity, original_gender, csv_filepath='users.csv'):
     """Gets a name/username, filtering CSV based on target identity.
 
     Args:
@@ -155,7 +98,6 @@ def get_username(target_identity, original_gender, scraped_username, csv_filepat
         list: [chosen_value, csv_gender, use_name_from_csv_bool]
               Returns [scraped_username, None, False] on failure or no match.
     """
-    scraped_username = scraped_username.strip()
     selected_final_value = None
     chosen_csv_gender = None
     pin = False
@@ -214,7 +156,6 @@ def get_username(target_identity, original_gender, scraped_username, csv_filepat
                     selected_final_value = name
                     pin = True # Indicates name chosen
                     print(f"Using full name from CSV: {selected_final_value}")
-
                 # Remove the *chosen* row from the *original* list
                 del all_rows_read[chosen_row_index_in_original]
 
@@ -228,35 +169,18 @@ def get_username(target_identity, original_gender, scraped_username, csv_filepat
             print(f"Warning: {csv_filepath} not found.")
     except Exception as e:
         print(f"Error processing {csv_filepath}: {e}")
-
-    # Fallback if no value selected from CSV
-    if selected_final_value is None:
-        if scraped_username:
-            selected_final_value = scraped_username
-            chosen_csv_gender = None # No gender info from fallback
-            pin = False # Indicates fallback/scraped username
-            print(f"Fallback to scraped username: {selected_final_value}")
-        else:
-            selected_final_value = "DefaultUsername"
-            chosen_csv_gender = None
-            pin = False
-            print("Warning: No valid data. Using default username.")
-
-    # Return chosen name/username, the gender from the chosen CSV row (or None), and the boolean
     return [selected_final_value, chosen_csv_gender, pin]
-
 
 scraper = cloudscraper.create_scraper()
 url = "https://app.circle.so/api/v1/community_members"
 
 def create_driver():
     global driver
-    driver = Driver(uc=True, incognito=True, headless=False)
+    driver = Driver(uc=True, incognito=True, headless=True)
     return driver
 
 def pinterest(name, gender, add):
     try:
-        print("add: ", add)
         pinterest_keywords = [f"{cat} {mod}" for cat in categories for mod in modifiers]
         driver = create_driver()
         WebDriverWait(driver, 60)
@@ -301,15 +225,6 @@ def pinterest(name, gender, add):
         time.sleep(1)
         pinterest(name,gender,add)
 
-
-def get_next_sibling_text(label_text, soup):
-    label = soup.find(string=label_text)
-    if label:
-        return label.find_next().get_text(strip=True)
-    else:
-        return "Label not found."
-
-
 def get_job(scraper):
     while True:
         url = "https://writingexercises.co.uk/php_WE/job.php?_=1745167420134"
@@ -318,51 +233,26 @@ def get_job(scraper):
             continue
         return randomize_first_letter_case(job.text)
 
-
 def scrap_person_data():
     try:
-        url = "https://www.fakepersongenerator.com/Index/generate"
-        response = scraper.get(url)
-        soup = BeautifulSoup(response.text, "html.parser")
-
-        image_srcs = [tag['src'] for tag in soup.find_all(src=lambda s: s and s.startswith('/Face'))]
-        avatar_url = f"https://www.fakepersongenerator.com{image_srcs[0]}" if image_srcs else None
-
         headline = get_job(scraper)
-        bio_labels = ["Online Status", "Online Signature", "Online Biography"]
-        bios = [get_next_sibling_text(label, soup) for label in bio_labels if get_next_sibling_text(label, soup)]
-        bios.append("")
-        selected_bio = random.choice(bios) if bios else ""
-
-        # --- Get Original Gender and Determine Final Identity/Pronouns ---
-        original_gender = ""
-        details_div = soup.find("div", class_="col-md-8 col-sm-6 col-xs-12")
-        if details_div:
-            text = details_div.get_text(separator=" ", strip=True)
-            if "Gender:" in text:
-                original_gender = text.split("Gender:")[1].split()[0].strip()
-            if "City, State, Zip:" in text:
-                 city = text.split("City, State, Zip:")[1].split(",")[0].strip()
-        else:
-            city = ""
-
+        original_gender = random.choice(["male","female"])
         final_identity = original_gender
         pronouns = None
-        if random.randint(1, 100) <= 9:
+        if random.randint(1, 100) <= 9.3:
             final_identity = random.choice(LGBT_IDENTITIES)
             pronouns = get_pronouns(final_identity, original_gender)
             print(f"Selected LGBT Identity: {final_identity}, Pronouns: {pronouns}")
-            selected_bio = format_bio_with_pronouns(selected_bio, pronouns)
+            selected_bio = get_bio(input1=f"{final_identity} {pronouns}")
         else:
             final_identity = original_gender
             print(f"Selected Identity: {final_identity}")
 
         # --- Username and Name Selection (using get_username) ---
-        raw_username = get_next_sibling_text("Username", soup)
-        username_data = get_username(final_identity, original_gender, raw_username)
+        username_data = get_username(final_identity, original_gender)
+        selected_bio = get_bio(input1=username_data[1])
         final_name_or_username = username_data[0]
         use_pin_search_modifier_from_csv = username_data[2]
-
         job_title_input = ["", headline]
         job_title_input = random.choice(job_title_input)
 
@@ -377,22 +267,25 @@ def scrap_person_data():
 
         # --- Image Selection ---
         pin_img = pinterest(final_name_or_username, final_identity, add_term_to_pinterest_search)
-        image_url = random.choice([avatar_url, pin_img])
+        image_url = pin_img
         imgur_url = imgur_uploader(scraper, image_url)
-        final_image = random.choices([imgur_url, " "], [0.9, 0.1])[0]
-
+        final_image = random.choices([imgur_url, ""], [0.9, 0.1])[0]
+        selected_bio = random.choices([selected_bio, ""], [0.65, 0.35])[0]
+        if random.choice([True, False]):
+            city = random.choice(uscities)
+        else:
+            city = ""
         return final_name_or_username, original_gender, final_identity, selected_bio, job_title_input, city, final_image
 
     except Exception as e:
         print("Error:", e)
         restart_warp()
 
-
 def get_mail(x=None):
     global wait, driver, circle, mail, tabs
     if x == "mail":
         driver = create_driver()
-        wait = WebDriverWait(driver, 601)
+        wait = WebDriverWait(driver, 60)
         driver.get('https://minmail.app/10-minute-mail')
         driver.execute_script("window.open('https://login.circle.so/sign_in?request_host=app.circle.so#email', '_blank');")
         tabs = driver.window_handles
@@ -407,7 +300,6 @@ def get_mail(x=None):
         code = codeele.text
         reg = re.findall(r'\d+', code)
         return ''.join(reg)
-
 
 def activate_user(email, pw):
     driver.switch_to.window(circle)
@@ -433,7 +325,6 @@ def activate_user(email, pw):
                         return
                     time.sleep(0.5)
 
-
 def create_person():
     while True:
         try:
@@ -447,6 +338,7 @@ def create_person():
                 "community_id": "337793",
                 "space_ids": [1987412],
                 "skip_invitation": False,
+                "location": city
             }
             headers = {'Authorization': 'Token ceLDhha7NKK6QMY2LU79B6EPc7LuUfrz'}
             response = requests.request("POST", url, headers=headers, data=payload)
@@ -462,11 +354,7 @@ count = 0
 while True:
     try:
         count += 1
-        # Unpack the new return values from scrap_person_data
-        final_name, scraped_gender, identity, bio, headline, city, avatar = scrap_person_data()
-        # Assign to fullname for use in create_person/insert_users
-        fullname = final_name
-
+        fullname, scraped_gender, identity, bio, headline, city, avatar = scrap_person_data()
         print(f"Chosen Name: {fullname}, Scraped Gender: {scraped_gender}, Final Identity: {identity}")
         mailstring = get_mail(x="mail")
         pw = generate_password()
@@ -478,3 +366,7 @@ while True:
             break
     except Exception as e:
         print(e)
+        try:
+            driver.quit()
+        except Exception:
+            pass
