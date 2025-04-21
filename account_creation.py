@@ -187,11 +187,12 @@ def pinterest(name, gender, add):
         key = random.choices([random.choice(pinterest_keywords), name], [0.6, 0.4])[0]
         
         if add:
-            search = f"{key} {gender}"
-            print(f"Searching Pinterest for: {search}")
+            search = f"{key} {gender}".replace(" ","%20")
+            print(f"Searching Pinterest for: {search.replace("%20"," ")}")
             url = f"https://www.pinterest.com/search/pins/?q={search}"
             driver.get(url)
         else:
+            search = key.replace(" ","%20")
             print(f"Searching Pinterest for: {key}")
             url = f"https://www.pinterest.com/search/pins/?q={key}"
             driver.get(url)
@@ -218,7 +219,8 @@ def pinterest(name, gender, add):
         image_urls = list(set(image_urls))
         img = random.choice(image_urls)
         driver.quit()
-        return img
+        search = search.replace("%20", " ")
+        return img, search
     except Exception as e:
         driver.quit()
         print(f"Error: {e}")
@@ -239,18 +241,17 @@ def scrap_person_data():
         original_gender = random.choice(["male","female"])
         final_identity = original_gender
         pronouns = None
-        if random.randint(1, 100) <= 9.3:
+        if random.randint(1, 100) <= 90.3:
             final_identity = random.choice(LGBT_IDENTITIES)
             pronouns = get_pronouns(final_identity, original_gender)
             print(f"Selected LGBT Identity: {final_identity}, Pronouns: {pronouns}")
-            selected_bio = get_bio(input1=f"{final_identity} {pronouns}")
+            #selected_bio = get_bio(input1=f"{final_identity} {pronouns}")
         else:
             final_identity = original_gender
             print(f"Selected Identity: {final_identity}")
 
         # --- Username and Name Selection (using get_username) ---
         username_data = get_username(final_identity, original_gender)
-        selected_bio = get_bio(input1=username_data[1])
         final_name_or_username = username_data[0]
         use_pin_search_modifier_from_csv = username_data[2]
         job_title_input = ["", headline]
@@ -266,7 +267,15 @@ def scrap_person_data():
             print(f"Pinterest identity search for Male/Female determined by CSV logic: {add_term_to_pinterest_search}")
 
         # --- Image Selection ---
-        pin_img = pinterest(final_name_or_username, final_identity, add_term_to_pinterest_search)
+        pin_img, bio_modifier = pinterest(final_name_or_username, final_identity, add_term_to_pinterest_search)
+        if add_term_to_pinterest_search:
+            test = f"{final_identity} {pronouns} {bio_modifier}"
+            selected_bio = get_bio(input1=f"{final_identity} {pronouns} {bio_modifier}")
+        else:
+            test = f"{username_data[1]} {bio_modifier}"
+            selected_bio = get_bio(input1=f"{username_data[1]} {bio_modifier}")
+        print(test)
+        time.sleep(222)
         image_url = pin_img
         imgur_url = imgur_uploader(scraper, image_url)
         final_image = random.choices([imgur_url, ""], [0.9, 0.1])[0]
@@ -362,7 +371,7 @@ while True:
         activate_user(email=mailstring, pw=pw)
         insert_users(fullname, mailstring, pw, bio, headline, avatar)
         print(count)
-        if count == 50:
+        if count == 45:
             break
     except Exception as e:
         print(e)
