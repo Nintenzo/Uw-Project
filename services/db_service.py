@@ -13,20 +13,22 @@ def create_db():
         password TEXT,
         bio TEXT,
         headline TEXT,
-        avatar TEXT
+        avatar TEXT,
+        remember_user_token TEXT,
+        user_session_identifier TEXT
     )
     """)
     return
 
 
-def insert_users(name, email, password, bio, headline, avatar):
+def insert_users(name, email, password, bio, headline, avatar, remember_user_token, user_session_identifier):
     global cursor, conn
     try:
         cursor.execute("""
-        INSERT INTO users (name, email, password, bio, headline, avatar)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO users (name, email, password, bio, headline, avatar,remember_user_token,user_session_identifier)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 
-        """, (name, email, password, bio, headline, avatar))
+        """, (name, email, password, bio, headline, avatar, remember_user_token, user_session_identifier))
         conn.commit()
         print("Data inserted successfully!")
     except sqlite3.Error as e:

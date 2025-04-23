@@ -6,7 +6,6 @@ import csv
 import os
 import string
 import cloudscraper
-from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from seleniumbase import Driver
@@ -20,7 +19,7 @@ from settings.pinterest_keywords import categories, modifiers
 from settings.cities import uscities
 from settings.bio_keywords import bio_words
 from identity_data import LGBT_IDENTITIES, get_pronouns
-
+from services.cookies_service import get_cookies
 scraper = cloudscraper.create_scraper()
 url = "https://app.circle.so/api/v1/community_members"
 
@@ -29,7 +28,6 @@ def randomize_first_letter_case(text):
         return ""
     result = random.choices([text, text.lower(), text.upper()], [0.475, 0.475, 0.05])[0]
     return result
-
 
 def manipulate_username(username):
     if not username:
@@ -249,7 +247,7 @@ def scrap_person_data():
         original_gender = random.choice(["male","female"])
         final_identity = original_gender
         pronouns = None
-        if random.randint(1, 100) <= 900.3:
+        if random.randint(1, 100) <= 9.3:
             final_identity = random.choice(LGBT_IDENTITIES)
             pronouns = get_pronouns(final_identity, original_gender)
             print(f"Selected LGBT Identity: {final_identity}, Pronouns: {pronouns}")
@@ -335,8 +333,9 @@ def activate_user(email, pw):
                 while True:
                     current_url = driver.current_url
                     if current_url == "https://tubiit.circle.so/feed":
+                        remember_user_token, user_session_identifier = get_cookies(driver, "remember_user_token","user_session_identifier")
                         driver.quit()
-                        return
+                        return remember_user_token, user_session_identifier
                     time.sleep(0.5)
 
 def create_person():
@@ -373,8 +372,8 @@ while True:
         mailstring = get_mail(x="mail")
         pw = generate_password()
         create_person()
-        activate_user(email=mailstring, pw=pw)
-        insert_users(fullname, mailstring, pw, bio, headline, avatar)
+        remember_user_token, user_session_identifier = activate_user(email=mailstring, pw=pw)
+        insert_users(fullname, mailstring, pw, bio, headline, avatar, remember_user_token, user_session_identifier)
         print(count)
         if count == 20:
             break
