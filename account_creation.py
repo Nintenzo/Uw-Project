@@ -28,7 +28,7 @@ space = []
 
 for x in spaces:
     space.append(x[0])
-print(space)
+ 
 def randomize_first_letter_case(text):
     if not text:
         return ""
@@ -248,6 +248,7 @@ def get_job(scraper):
         return randomize_first_letter_case(job.text)
 
 def scrap_person_data():
+    global final_identity, original_gender
     try:
         headline = get_job(scraper)
         original_gender = random.choice(["male","female"])
@@ -362,7 +363,11 @@ def create_person():
             }
             headers = {'Authorization': 'Token ceLDhha7NKK6QMY2LU79B6EPc7LuUfrz'}
             response = requests.request("POST", url, headers=headers, json=payload)
-            return
+            data = response.json()
+            memeber_id = data.get('user').get('id')
+            public_uid = data.get('user').get('public_uid')
+            community_member_id = data.get('user').get('community_member_id')
+            return memeber_id, public_uid, community_member_id
         except Exception as e:
             print(e)
             continue
@@ -377,9 +382,9 @@ while True:
         print(f"Chosen Name: {fullname}, Scraped Gender: {scraped_gender}, Final Identity: {identity}")
         mailstring = get_mail(x="mail")
         pw = generate_password()
-        create_person()
+        memeber_id, public_uid, community_member_id = create_person()
         remember_user_token, user_session_identifier = activate_user(email=mailstring, pw=pw)
-        insert_users(fullname, mailstring, pw, bio, headline, avatar, remember_user_token, user_session_identifier)
+        insert_users(fullname, mailstring, pw, final_identity, original_gender, bio, headline, city, avatar, remember_user_token, user_session_identifier, memeber_id, public_uid, community_member_id)
         print(count)
         if count == 20:
             break
