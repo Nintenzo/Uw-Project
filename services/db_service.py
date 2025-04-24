@@ -13,6 +13,7 @@ def create_db():
         password TEXT,
         final_identity TEXT,
         original_identity TEXT,
+        pronouns TEXT,
         bio TEXT,
         headline TEXT,
         location TEXT,
@@ -64,14 +65,14 @@ def fetch_spaces_id(x):
     """)
     return data
 
-def insert_users(name, email, password, final_identity, original_identity, bio, headline, location, avatar, remember_user_token, user_session_identifier, memeber_id, public_uid, community_member_id):
+def insert_users(name, email, password, final_identity, original_identity, pronouns, bio, headline, location, avatar, remember_user_token, user_session_identifier, memeber_id, public_uid, community_member_id):
     global cursor, conn
     try:
         cursor.execute("""
-        INSERT INTO users (name, email, password, final_identity, original_identity, bio, headline, location, avatar, remember_user_token, user_session_identifier, memeber_id, public_uid, community_member_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO users (name, email, password, final_identity, original_identity, pronouns, bio, headline, location, avatar, remember_user_token, user_session_identifier, memeber_id, public_uid, community_member_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 
-        """, (name, email, password, final_identity, original_identity, bio, headline, location, avatar, remember_user_token, user_session_identifier, memeber_id, public_uid, community_member_id ))
+        """, (name, email, password, final_identity, original_identity, pronouns, bio, headline, location, avatar, remember_user_token, user_session_identifier, memeber_id, public_uid, community_member_id ))
         conn.commit()
         print("Data inserted successfully!")
     except sqlite3.Error as e:

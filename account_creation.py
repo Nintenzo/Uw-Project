@@ -294,7 +294,7 @@ def scrap_person_data():
             city = random.choice(uscities)
         else:
             city = ""
-        return final_name_or_username, original_gender, final_identity, selected_bio, job_title_input, city, final_image
+        return final_name_or_username, original_gender, final_identity, selected_bio, job_title_input, city, final_image, pronouns
 
     except Exception as e:
         print("Error:", e)
@@ -378,13 +378,13 @@ count = 0
 while True:
     try:
         count += 1
-        fullname, scraped_gender, identity, bio, headline, city, avatar = scrap_person_data()
+        fullname, scraped_gender, identity, bio, headline, city, avatar, pronouns = scrap_person_data()
         print(f"Chosen Name: {fullname}, Scraped Gender: {scraped_gender}, Final Identity: {identity}")
         mailstring = get_mail(x="mail")
         pw = generate_password()
         memeber_id, public_uid, community_member_id = create_person()
         remember_user_token, user_session_identifier = activate_user(email=mailstring, pw=pw)
-        insert_users(fullname, mailstring, pw, final_identity, original_gender, bio, headline, city, avatar, remember_user_token, user_session_identifier, memeber_id, public_uid, community_member_id)
+        insert_users(fullname, mailstring, pw, final_identity, original_gender, pronouns, bio, headline, city, avatar, remember_user_token, user_session_identifier, memeber_id, public_uid, community_member_id)
         print(count)
         if count == 20:
             break
