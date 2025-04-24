@@ -1,7 +1,8 @@
 subreddits = {
-    "Wellness Talk": { 
-        "original": "Health", 
+    "Wellness Talk": {
+        "original": "Health",
         "context": "A hub for sharing general health advice, preventive strategies, and staying informed about overall wellness.",
+        "space_id": 1996258,
         "keywords": [
             "general health tips",
             "preventive care strategies",
@@ -18,6 +19,7 @@ subreddits = {
     "Life With Illness": { 
         "original": "ChronicIllness", 
         "context": "Support and discussion for those navigating daily life with chronic illnesses and long-term health conditions.",
+        "space_id": 1996259,
         "keywords": [
             "coping with chronic pain",
             "daily life with chronic illness",
@@ -34,6 +36,7 @@ subreddits = {
     "Mind Matters": { 
         "original": "mentalhealth", 
         "context": "Dedicated to promoting mental well-being through advice, support, and mental health resources.",
+        "space_id": 1996260,
         "keywords": [
             "mental health resources",
             "coping with anxiety and depression",
@@ -50,6 +53,7 @@ subreddits = {
     "Fit Journey": { 
         "original": "Fitness", 
         "context": "A community for fitness enthusiasts focused on workouts, exercise tips, and achieving personal fitness goals.",
+        "space_id": 1996261,
         "keywords": [
             "workout routines",
             "strength training tips",
@@ -66,6 +70,7 @@ subreddits = {
     "Diabetic Support": { 
         "original": "diabetes", 
         "context": "For individuals managing diabetes, with tips on diet, insulin, and living a balanced diabetic lifestyle.",
+        "space_id": 1996262,
         "keywords": [
             "blood sugar monitoring",
             "diabetic diet plans",
@@ -82,6 +87,7 @@ subreddits = {
     "Food For Health": { 
         "original": "nutrition", 
         "context": "Focused on healthy eating habits, nutrition facts, and planning a diet for optimal health.",
+        "space_id": 1996263,
         "keywords": [
             "balanced diet guidelines",
             "nutritional supplements",
@@ -98,6 +104,7 @@ subreddits = {
     "Ask A Doc": { 
         "original": "medical_advice", 
         "context": "Get guidance on medical concerns, symptoms, and how to navigate the healthcare system.",
+        "space_id": 1996264,
         "keywords": [
             "interpreting lab results",
             "medication side effects",
@@ -114,6 +121,7 @@ subreddits = {
     "Overcoming Anxiety": { 
         "original": "anxiety", 
         "context": "A supportive space for managing anxiety and sharing effective coping techniques and therapies.",
+        "space_id": 1996265,
         "keywords": [
             "anxiety coping mechanisms",
             "managing panic attacks",
@@ -130,6 +138,7 @@ subreddits = {
     "Keto Fuel": { 
         "original": "keto", 
         "context": "All about the ketogenic lifestyle—from recipes to tracking ketosis and overcoming challenges.",
+        "space_id": 1996266,
         "keywords": [
             "ketogenic diet recipes",
             "keto meal planning",
@@ -146,6 +155,7 @@ subreddits = {
     "Focus With ADHD": { 
         "original": "adhd", 
         "context": "Sharing experiences and tools for those with ADHD to improve focus and manage daily challenges.",
+        "space_id": 1996267,
         "keywords": [
             "ADHD coping strategies",
             "focus improvement tips",
@@ -162,6 +172,7 @@ subreddits = {
     "ADHD Ladies": { 
         "original": "adhdwomen", 
         "context": "A women-focused ADHD support community highlighting gender-specific experiences and needs.",
+        "space_id": 1996268,
         "keywords": [
             "ADHD symptoms in women",
             "hormonal effects on ADHD",
@@ -178,6 +189,7 @@ subreddits = {
     "Endo Support": { 
         "original": "endometriosis", 
         "context": "Support, education, and resources for those affected by endometriosis and pelvic pain.",
+        "space_id": 1996269,
         "keywords": [
             "endometriosis pain management",
             "treatment options for endometriosis",
@@ -193,12 +205,13 @@ subreddits = {
     },
     "Her Health": { 
         "original": "womenshealth", 
-        "context": "Covers all aspects of women’s health, from menstruation to menopause and beyond.",
+        "context": "Covers all aspects of women's health, from menstruation to menopause and beyond.",
+        "space_id": 1996270,
         "keywords": [
             "reproductive health education",
             "menstrual health tips",
             "menopause management",
-            "women’s health screenings",
+            "women's health screenings",
             "hormonal health",
             "breast health",
             "pelvic floor exercises",
@@ -210,6 +223,7 @@ subreddits = {
     "OBGYN Care": { 
         "original": "obgyn", 
         "context": "Focused on obstetric and gynecological care, pregnancy, fertility, and reproductive health.",
+        "space_id": 1996271,
         "keywords": [
             "prenatal care advice",
             "birth control options",
@@ -225,13 +239,14 @@ subreddits = {
     },
     "Womens Wellbeing": { 
         "original": "xxhealth", 
-        "context": "A broader discussion space for women’s physical and mental well-being and gender-based health topics.",
+        "context": "A broader discussion space for women's physical and mental well-being and gender-based health topics.",
+        "space_id": 1996272,
         "keywords": [
-            "women’s health discussions",
+            "women's health discussions",
             "female-specific health issues",
             "health screenings for women",
             "wellness tips for women",
-            "women’s health advocacy",
+            "women's health advocacy",
             "gender-specific research",
             "hormonal balance",
             "mental health in women",
@@ -242,6 +257,7 @@ subreddits = {
     "Flexibility Hub": { 
         "original": "flexibility", 
         "context": "For improving flexibility and mobility through stretching, yoga, and movement practices.",
+        "space_id": 1996273,
         "keywords": [
             "stretching routines",
             "improving flexibility",
@@ -258,6 +274,7 @@ subreddits = {
     "Migraine Relief": { 
         "original": "migraine", 
         "context": "For sharing experiences, treatment options, and support for managing migraines.",
+        "space_id": 1996274,
         "keywords": [
             "migraine triggers",
             "migraine relief methods",
@@ -274,6 +291,7 @@ subreddits = {
     "Baby On Board": { 
         "original": "pregnant", 
         "context": "Community for expecting parents, offering advice on pregnancy stages and postpartum care.",
+        "space_id": 1996275,
         "keywords": [
             "pregnancy milestones",
             "prenatal nutrition",
@@ -290,6 +308,7 @@ subreddits = {
     "Chronic Support": { 
         "original": "chronicillness", 
         "context": "A safe space for chronic illness support and shared lived experiences.",
+        "space_id": 1996276,
         "keywords": [
             "coping with chronic pain",
             "daily life with chronic illness",
@@ -306,6 +325,7 @@ subreddits = {
     "Skin Care Circle": { 
         "original": "skincare", 
         "context": "A community for skincare advice, product reviews, and routines for healthy skin.",
+        "space_id": 1996277,
         "keywords": [
             "skincare routines",
             "acne treatment options",
