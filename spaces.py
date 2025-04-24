@@ -6,7 +6,7 @@ from settings.spaces_keywords import subreddits
 load_dotenv()
 key = os.getenv("CIRCLE_API")
 headers = {'Authorization': f'Token {key}'}
-community_id = "337793"
+community_id = os.getenv("COMMUNITY_ID")
 
 def delete_spaces():
     url = f"https://app.circle.so/api/v1/spaces?community_id={community_id}&sort=active&per_page=25"

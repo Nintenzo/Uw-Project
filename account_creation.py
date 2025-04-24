@@ -12,7 +12,7 @@ from seleniumbase import Driver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from services.warp_service import restart_warp
-from services.db_service import create_db, insert_users, fetch_spaces_id
+from services.db_service import create_db_users, insert_users, fetch_spaces_id
 from services.password_service import generate_password
 from services.imgur_service import imgur_uploader
 from settings.pinterest_keywords import categories, modifiers
@@ -20,15 +20,17 @@ from settings.cities import uscities
 from settings.bio_keywords import bio_words
 from identity_data import LGBT_IDENTITIES, get_pronouns
 from services.cookies_service import get_cookies
+from dotenv import load_dotenv
+load_dotenv()
+
 scraper = cloudscraper.create_scraper()
 url = "https://app.circle.so/api/v1/community_members"
-community_id = "337793"
+community_id = os.getenv("COMMUNITY_ID")
 spaces = fetch_spaces_id("space_id").fetchall()
 space = []
 
 for x in spaces:
     space.append(x[0])
- 
 def randomize_first_letter_case(text):
     if not text:
         return ""
@@ -373,7 +375,7 @@ def create_person():
             continue
 
 
-create_db()
+conn, cursor = create_db_users()
 count = 0
 while True:
     try:
@@ -386,8 +388,6 @@ while True:
         remember_user_token, user_session_identifier = activate_user(email=mailstring, pw=pw)
         insert_users(fullname, mailstring, pw, final_identity, original_gender, pronouns, bio, headline, city, avatar, remember_user_token, user_session_identifier, memeber_id, public_uid, community_member_id)
         print(count)
-        if count == 20:
-            break
     except Exception as e:
         print(e)
         try:

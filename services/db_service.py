@@ -1,10 +1,8 @@
 import sqlite3
-conn = sqlite3.connect("circle_users.db")
-cursor = conn.cursor()
 
-
-def create_db():
-    global cursor, conn
+def create_db_users():
+    conn = sqlite3.connect("circle_users.db")
+    cursor = conn.cursor()
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,6 +23,20 @@ def create_db():
         community_member_id INTEGER
     )
     """)
+    return conn, cursor
+
+def insert_users(name, email, password, final_identity, original_identity, pronouns, bio, headline, location, avatar, remember_user_token, user_session_identifier, memeber_id, public_uid, community_member_id):
+    conn, cursor = create_db_users()
+    try:
+        cursor.execute("""
+        INSERT INTO users (name, email, password, final_identity, original_identity, pronouns, bio, headline, location, avatar, remember_user_token, user_session_identifier, memeber_id, public_uid, community_member_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+
+        """, (name, email, password, final_identity, original_identity, pronouns, bio, headline, location, avatar, remember_user_token, user_session_identifier, memeber_id, public_uid, community_member_id ))
+        conn.commit()
+        print("Data inserted successfully!")
+    except sqlite3.Error as e:
+        print(f"Error inserting data: {e}")
     return
 
 def create_db_space():
@@ -65,14 +77,34 @@ def fetch_spaces_id(x):
     """)
     return data
 
-def insert_users(name, email, password, final_identity, original_identity, pronouns, bio, headline, location, avatar, remember_user_token, user_session_identifier, memeber_id, public_uid, community_member_id):
-    global cursor, conn
-    try:
-        cursor.execute("""
-        INSERT INTO users (name, email, password, final_identity, original_identity, pronouns, bio, headline, location, avatar, remember_user_token, user_session_identifier, memeber_id, public_uid, community_member_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 
-        """, (name, email, password, final_identity, original_identity, pronouns, bio, headline, location, avatar, remember_user_token, user_session_identifier, memeber_id, public_uid, community_member_id ))
+def create_post_db():
+    conn = sqlite3.connect("reddit_scrap.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS posts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        original_title TEXT,
+        original_description TEXT,
+        title TEXT,
+        description TEXT,
+        post_id INTEGER,
+        space_id INTEGER,
+        links TEXT NOT NULL
+    )
+    """)
+    return conn, cursor
+
+
+def insert_post(original_title, original_description, ai_title, ai_description, post_id, space_id, link):
+    conn, cursor = create_post_db()
+    try:
+        
+        cursor.execute("""
+        INSERT INTO spaces (original_title, original_description, ai_title, ai_description, post_id, link)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+
+        """, (original_title, original_description, ai_title, ai_description, post_id, space_id, link))
         conn.commit()
         print("Data inserted successfully!")
     except sqlite3.Error as e:
