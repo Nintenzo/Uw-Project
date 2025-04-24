@@ -12,7 +12,7 @@ from seleniumbase import Driver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from services.warp_service import restart_warp
-from services.db_service import create_db, insert_users
+from services.db_service import create_db, insert_users, fetch_spaces_id
 from services.password_service import generate_password
 from services.imgur_service import imgur_uploader
 from settings.pinterest_keywords import categories, modifiers
@@ -22,7 +22,13 @@ from identity_data import LGBT_IDENTITIES, get_pronouns
 from services.cookies_service import get_cookies
 scraper = cloudscraper.create_scraper()
 url = "https://app.circle.so/api/v1/community_members"
+community_id = "337793"
+spaces = fetch_spaces_id("space_id").fetchall()
+space = []
 
+for x in spaces:
+    space.append(x[0])
+print(space)
 def randomize_first_letter_case(text):
     if not text:
         return ""
@@ -314,6 +320,7 @@ def get_mail(x=None):
         return ''.join(reg)
 
 def activate_user(email, pw):
+    print("Activating Account")
     driver.switch_to.window(circle)
     emailform = wait.until(EC.visibility_of_element_located((By.NAME, "user[email]")))
     emailform.send_keys(email)
@@ -348,14 +355,13 @@ def create_person():
                 "bio": bio,
                 "headline": headline,
                 "avatar": avatar,
-                "community_id": "337793",
-                "space_ids": [1987412],
+                "community_id": community_id,
+                "space_ids": space,
                 "skip_invitation": False,
                 "location": city
             }
             headers = {'Authorization': 'Token ceLDhha7NKK6QMY2LU79B6EPc7LuUfrz'}
-            response = requests.request("POST", url, headers=headers, data=payload)
-            print(response.json())
+            response = requests.request("POST", url, headers=headers, json=payload)
             return
         except Exception as e:
             print(e)

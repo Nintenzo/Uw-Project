@@ -20,6 +20,43 @@ def create_db():
     """)
     return
 
+def create_db_space():
+    conn = sqlite3.connect("spaces.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS spaces (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        space_name TEXT NOT NULL,
+        original TEXT NOT NULL,
+        space_id INTEGER NOT NULL,
+        keywords TEXT NOT NULL,
+        context TEXT NOT NULL
+    )
+    """)
+    return conn, cursor
+
+def insert_space(space_name, original, space_id, keywords, context):
+    conn, cursor = create_db_space()
+    try:
+        
+        cursor.execute("""
+        INSERT INTO spaces (space_name, original, space_id, keywords, context)
+        VALUES (?, ?, ?, ?, ?)
+
+        """, (space_name, original, space_id, keywords, context))
+        conn.commit()
+        print("Data inserted successfully!")
+    except sqlite3.Error as e:
+        print(f"Error inserting data: {e}")
+    return
+
+def fetch_spaces_id(x):
+    conn = sqlite3.connect("spaces.db")
+    cursor = conn.cursor()
+    data = cursor.execute(f"""
+    SELECT {x} FROM spaces
+    """)
+    return data
 
 def insert_users(name, email, password, bio, headline, avatar, remember_user_token, user_session_identifier):
     global cursor, conn

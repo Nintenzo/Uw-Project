@@ -51,12 +51,12 @@ reddit = praw.Reddit(
     user_agent='my_reddit_scraper_by_u/Ninntendo_Kid33'
 )
 
-subreddits = [reddit.subreddit('lostarkgame'),reddit.subreddit('upwork'),]
+subreddits = [reddit.subreddit('Health'),reddit.subreddit('upwork'),]
 
 count = 0
 
 for subreddit in subreddits:
-    for post in subreddit.new(limit=None):
+    for post in subreddit.search("general health tips", sort="new"):
         cursor.execute("SELECT links FROM posts")
         links = [row[0] for row in cursor.fetchall()]  
         if post.permalink in links:
@@ -81,41 +81,43 @@ for subreddit in subreddits:
             # Format the message to send to GPT
             message = f"I will send you a post now I want you to rewrite aka palagarism it in a different format with nothing else in your message just the title and the description. Make the title in the first line of your message, don't include the word title and description before."
             title = f"Title: {title}"
-            description = f"Description: {description}"
-            driver.get("https://chatgpt.com/")
-            button = wait.until(EC.visibility_of_any_elements_located((By.CSS_SELECTOR, 'button[aria-label="New chat"]')))[0]
-            button.click()
-            try:
-                wait = WebDriverWait(driver, 2)
-                danger = wait.until(EC.visibility_of_any_elements_located((By.CLASS_NAME,"btn relative btn-danger btn-giant mb-3")))[0]
-                danger.click()
-            except Exception:
-                pass
-            wait = WebDriverWait(driver, 30)
-            element = wait.until(EC.visibility_of_all_elements_located((By.CLASS_NAME,"ProseMirror")))[0]
-            safe_send_multiline(message)
-            element.send_keys(Keys.SHIFT, Keys.ENTER)
-            safe_send_multiline(title)
-            element.send_keys(Keys.SHIFT, Keys.ENTER)
-            safe_send_multiline(description)
-            element.send_keys(Keys.ENTER)
-            element = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, ".flex.w-full.flex-col.gap-1.empty\\:hidden.first\\:pt-\\[3px\\]")))[0]
-            time.sleep(0.5)
-            while is_typing(driver):
-                print("still typing...")
-                time.sleep(1)
-            element = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, ".flex.w-full.flex-col.gap-1.empty\\:hidden.first\\:pt-\\[3px\\]")))[0]
-            print("REDDIT TEXT")
-            print("----------------------------------------------------")
             print(title)
-            print(description)
-            print("----------------------------------------------------")
-            print("CHAT GPT TEXT")
-            print("----------------------------------------------------")
-            print(element.text)
-            print("----------------------------------------------------")
+            time.sleep(2)
+            # description = f"Description: {description}"
+            # driver.get("https://chatgpt.com/")
+            # button = wait.until(EC.visibility_of_any_elements_located((By.CSS_SELECTOR, 'button[aria-label="New chat"]')))[0]
+            # button.click()
+            # try:
+            #     wait = WebDriverWait(driver, 2)
+            #     danger = wait.until(EC.visibility_of_any_elements_located((By.CLASS_NAME,"btn relative btn-danger btn-giant mb-3")))[0]
+            #     danger.click()
+            # except Exception:
+            #     pass
+            # wait = WebDriverWait(driver, 30)
+            # element = wait.until(EC.visibility_of_all_elements_located((By.CLASS_NAME,"ProseMirror")))[0]
+            # safe_send_multiline(message)
+            # element.send_keys(Keys.SHIFT, Keys.ENTER)
+            # safe_send_multiline(title)
+            # element.send_keys(Keys.SHIFT, Keys.ENTER)
+            # safe_send_multiline(description)
+            # element.send_keys(Keys.ENTER)
+            # element = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, ".flex.w-full.flex-col.gap-1.empty\\:hidden.first\\:pt-\\[3px\\]")))[0]
+            # time.sleep(0.5)
+            # while is_typing(driver):
+            #     print("still typing...")
+            #     time.sleep(1)
+            # element = wait.until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, ".flex.w-full.flex-col.gap-1.empty\\:hidden.first\\:pt-\\[3px\\]")))[0]
+            # print("REDDIT TEXT")
+            # print("----------------------------------------------------")
+            # print(title)
+            # print(description)
+            # print("----------------------------------------------------")
+            # print("CHAT GPT TEXT")
+            # print("----------------------------------------------------")
+            # print(element.text)
+            # print("----------------------------------------------------")
 
-            driver.quit()
-            create_driver()
+            # driver.quit()
+            # create_driver()
 
     # retry = document.getElementsByClassName("btn relative btn-secondary")[1].textContent
