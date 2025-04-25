@@ -16,7 +16,7 @@ circle_headers = {
 }
 
 
-def send_to_gpt(message, is_post, final_idenitity, original_identity, n=30):
+def send_to_gpt(message, is_post, final_idenitity, original_identity, n=30, previous_openings=None):
     sentiment = random.choice(sentiments)
     system_prompt_post = f"""You are posting as a '{final_idenitity} {original_identity}' You are an expert content rewriter who transforms text into a unique format
     to avoid plagiarism while preserving the original meaning.
@@ -26,7 +26,13 @@ def send_to_gpt(message, is_post, final_idenitity, original_identity, n=30):
     DO NOT EVER INCLUDE THE WORD TITLE/DESCRIPTION AND THE TITLE MUST MUST MUST BE LESS THAN 230 CHARACTERS NO MORE EVEN IF THE ORIGINAL TITLE IS MORE THAN 230 YOU NEED TO MAKE IT SHORTER THAN THAT 
     THAN THAT AND DO NOT INCLUDE ANYTHING THAT MAKE IT RELEATED TO A SPECIFIC SOCIAL MEDIA PLATFORM """
 
-    system_prompt_comment = f"""You are commenting as a '{final_idenitity} {original_identity}'.
+    if not is_post and previous_openings:
+        openings_text = "\n".join([f"- {o}" for o in previous_openings])
+        openings_section = f"Here are the openings of previous comments on this post:\n{openings_text}\nDo NOT start your comment with any of these openings or anything similar. Make your opening sentence unique and different from the above.\n"
+    else:
+        openings_section = ""
+
+    system_prompt_comment = f"""{openings_section}You are commenting as a '{final_idenitity} {original_identity}'.
 Start every comment with a distinct, creative, and natural opening sentence that is different from previous comments. Do not use generic phrases like “That is too sad,” “That’s interesting,” or similar. Avoid repeating the same structure or wording at the beginning of your comments. For example, you might start with a personal reaction, a question, or a specific observation, such as: “I remember facing something similar...”, “Have you tried...?”, “It’s amazing how...”, etc. But always make your opening unique and relevant to the post.
 You are a human participating in online discussions. When given a post, your task is to write a short, thoughtful, and natural-sounding comment in response to it. Your replies should sound like they were written by a real person—casual, relevant, and engaging.
 Keep your comment brief and concise, suitable for a typical online comment. Your comment type should be: {sentiment} Avoid sounding robotic, overly formal, or scripted. Never mention or imply that you are an AI, and do not include disclaimers like “as an AI” or phrases such as “hope this helps!” unless they naturally fit the tone.
@@ -56,7 +62,6 @@ Your goal is to contribute meaningfully and seamlessly to the discussion without
     else:
         return rewrite
 
-
 def like_post(post_id, email):
     url = f"https://app.circle.so/api/v1/posts/{post_id}/likes?user_email={email}"
     try:
@@ -72,7 +77,7 @@ def like_post(post_id, email):
     return data.json()
 
 
-def comment_on_post(space_id, post_id, user_email):
+def comment_on_post(space_id, post_id, user_email, previous_openings=None):
     """
     This function comments on a post.
     It first fetches the post and then sends the post to GPT to get a comment.
@@ -91,7 +96,7 @@ def comment_on_post(space_id, post_id, user_email):
     Title: {title}
     Description: {description}
     """
-    body = send_to_gpt(message=message, is_post=False, final_idenitity=final_idenitity, original_identity=original_identity, n=random.randint(10,70))
+    body = send_to_gpt(message=message, is_post=False, final_idenitity=final_idenitity, original_identity=original_identity, n=random.randint(10,70), previous_openings=previous_openings)
     url = "https://app.circle.so/api/v1/comments?"
     payload = {"community_id": community_id,
                "space_id": space_id,
@@ -106,47 +111,46 @@ def comment_on_post(space_id, post_id, user_email):
     if response.status_code == 200:
         print("Comment Created")
         last_seen(email=user_email)
+        return body  # Return the comment body
     else:
         print("Comment Not Created")
+        return None
 
 
 def create_post(space_id, email, title, description, url):
+    gender = get_gender(email)
+    final_idenitity = gender[0][0]
+    original_identity = gender[0][1]
+    message = f"""
+    Title: {title}
+    Description: {description}
+    """
+    original_title = title
+    original_description = description
+    circle_url = "https://app.circle.so/api/v1/posts?"
+    title, description = send_to_gpt(message=message, is_post=True, final_idenitity=final_idenitity, original_identity=original_identity)
+    payload = {
+                "space_id": space_id,
+                "community_id": os.getenv("COMMUNITY_ID"),
+                "user_email": email,
+                "is_comments_enabled": True,
+                "is_liking_enabled": True,
+                "name": title,
+                "body": description
+            }
     try:
-        gender = get_gender(email)
-        final_idenitity = gender[0][0]
-        original_identity = gender[0][1]
-        message = f"""
-        Title: {title}
-        Description: {description}
-        """
-        original_title = title
-        original_description = description
-        circle_url = "https://app.circle.so/api/v1/posts?"
-        title, description = send_to_gpt(message=message, is_post=True, final_idenitity=final_idenitity, original_identity=original_identity)
-        payload = {
-                    "space_id": space_id,
-                    "community_id": os.getenv("COMMUNITY_ID"),
-                    "user_email": email,
-                    "is_comments_enabled": True,
-                    "is_liking_enabled": True,
-                    "name": title,
-                    "body": description
-                }
-        try:
-            response = requests.request("POST", circle_url, headers=circle_headers, data=payload)
-        except Exception:
-            time.sleep(10)
-            response = requests.request("POST", circle_url, headers=circle_headers, data=payload)
-        if response.status_code == 200:
-            print("Post Created")
-            last_seen(email)
-            data = response.json()
-            post_id = data['post']['id']
-        # needed_likes = random.randint(200,1050)
-            needed_likes = random.randint(80,180)
-            needed_comments = random.randint(int(needed_likes * 0.08), int(needed_likes * 0.15))
-            insert_post(original_title, original_description, title, description, post_id, space_id, url, needed_likes=needed_likes, needed_comments=needed_comments)
-    except Exception as e:
-        print(e)
-        print(title)
-        time.sleep(55)
+        response = requests.request("POST", circle_url, headers=circle_headers, data=payload)
+    except Exception:
+        time.sleep(10)
+        response = requests.request("POST", circle_url, headers=circle_headers, data=payload)
+
+    if response.status_code == 200:
+        print("Post Created")
+        last_seen(email)
+        data = response.json()
+        post_id = data['post']['id']
+
+    # needed_likes = random.randint(200,1050)
+        needed_likes = random.randint(80,180)
+        needed_comments = random.randint(int(needed_likes * 0.08), int(needed_likes * 0.15))
+        insert_post(original_title, original_description, title, description, post_id, space_id, url, needed_likes=needed_likes, needed_comments=needed_comments)

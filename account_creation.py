@@ -100,85 +100,70 @@ def get_bio(input1):
 
 
 def get_username(target_identity, original_gender, csv_filepath='users.csv'):
-    """Gets a name/username, filtering CSV based on target identity.
-
-    Args:
-        target_identity (str): The desired identity (Male, Female, Lesbian, Gay, etc.).
-        original_gender (str): The originally scraped gender (for Trans cases).
-        scraped_username (str): The username scraped from the website (fallback).
-        csv_filepath (str): The path to the CSV file (username, name, gender).
-
-    Returns:
-        list: [chosen_value, csv_gender, use_name_from_csv_bool]
-              Returns [scraped_username, None, False] on failure or no match.
-    """
+    """Gets a name/username, filtering CSV based on target identity. If no match, tries the other gender."""
     selected_final_value = None
     chosen_csv_gender = None
     pin = False
-    rows = []
     all_rows_read = []
+
+    def filter_rows(target_identity_cap, original_gender_cap):
+        filtered = []
+        for row in all_rows_read:
+            csv_gender = row[2].strip().capitalize()
+            match = False
+            if target_identity_cap in ["Male", "Gay"] and csv_gender == "Male":
+                match = True
+            elif target_identity_cap in ["Female", "Lesbian"] and csv_gender == "Female":
+                match = True
+            elif target_identity_cap == "Bisexual" and csv_gender in ["Male", "Female"]:
+                match = True
+            elif target_identity_cap == "Transgender":
+                if original_gender_cap == "Female" and csv_gender == "Male":
+                    match = True
+                elif original_gender_cap == "Male" and csv_gender == "Female":
+                    match = True
+            if match:
+                filtered.append(row)
+        return filtered
 
     try:
         if os.path.exists(csv_filepath):
             with open(csv_filepath, 'r', newline='', encoding='utf-8') as f:
                 reader = csv.reader(f)
-                # Read all rows with at least 3 columns
                 all_rows_read = [row for row in reader if len(row) >= 3 and all(c.strip() for c in row[:3])]
 
-            # --- Filter rows based on target_identity ---
-            filtered_rows = []
             target_identity_cap = target_identity.capitalize()
             original_gender_cap = original_gender.capitalize() if original_gender else None
+            filtered_rows = filter_rows(target_identity_cap, original_gender_cap)
 
-            for row in all_rows_read:
-                csv_gender = row[2].strip().capitalize()
-                match = False
-                if target_identity_cap in ["Male", "Gay"] and csv_gender == "Male":
-                    match = True
-                elif target_identity_cap in ["Female", "Lesbian"] and csv_gender == "Female":
-                    match = True
-                elif target_identity_cap == "Bisexual" and csv_gender in ["Male", "Female"]:
-                     match = True
-                elif target_identity_cap == "Transgender":
-                    # Match Male names if original gender was Female (Trans Man)
-                    if original_gender_cap == "Female" and csv_gender == "Male":
-                        match = True
-                    # Match Female names if original gender was Male (Trans Woman)
-                    elif original_gender_cap == "Male" and csv_gender == "Female":
-                        match = True
-                
-                if match:
-                    filtered_rows.append(row)
-
-            print(f"Target: {target_identity_cap}, Orig G: {original_gender_cap}. Found {len(filtered_rows)} matching CSV rows.")
+            # If no match, try the other gender
+            if not filtered_rows and target_identity_cap in ["Male", "Gay", "Female", "Lesbian"]:
+                alt_identity = "Female" if target_identity_cap in ["Male", "Gay"] else "Male"
+                filtered_rows = filter_rows(alt_identity, original_gender_cap)
+                if filtered_rows:
+                    print(f"No rows for {target_identity_cap}, falling back to {alt_identity}.")
+                    target_identity_cap = alt_identity
 
             if filtered_rows:
-                # --- Choose from filtered rows ---
                 chosen_row = random.choice(filtered_rows)
-                chosen_row_index_in_original = all_rows_read.index(chosen_row) # Find index in original list
-                
+                chosen_row_index_in_original = all_rows_read.index(chosen_row)
                 username = chosen_row[0].strip()
                 name = chosen_row[1].strip()
                 chosen_csv_gender = chosen_row[2].strip()
-
-                # 50/50 choice: use name or manipulated username
-                if random.choice([True, False]): # True = Use Manipulated Username
+                if random.choice([True, False]):
                     selected_final_value = manipulate_username(username)
-                    pin = False # Indicates manipulated username chosen
+                    pin = False
                     print(f"Using manipulated username from CSV: {selected_final_value}")
-                else: # False = Use Name
+                else:
                     selected_final_value = name
-                    pin = True # Indicates name chosen
+                    pin = True
                     print(f"Using full name from CSV: {selected_final_value}")
-                # Remove the *chosen* row from the *original* list
                 del all_rows_read[chosen_row_index_in_original]
-
-                # Save remaining rows back to CSV
                 with open(csv_filepath, 'w', newline='', encoding='utf-8') as f:
                     writer = csv.writer(f)
                     writer.writerows(all_rows_read)
             else:
-                print(f"Warning: No CSV rows match target identity '{target_identity}'.")
+                print(f"Warning: No CSV rows match target identity '{target_identity}' or fallback gender.")
         else:
             print(f"Warning: {csv_filepath} not found.")
     except Exception as e:
@@ -296,7 +281,7 @@ def scrap_person_data():
 
     except Exception as e:
         print("Error:", e)
-        restart_warp()
+        # restart_warp()
 
 def get_mail(x=None):
     global wait, driver, circle, mail, tabs

@@ -17,6 +17,18 @@ def seconds_until_next_430_utc():
     return (target - now).total_seconds()
 
 
+def extract_opening(text, num_words=10):
+    if not text:
+        return ""
+    sentence = text.split('.')
+    if sentence:
+        opening = sentence[0].strip()
+        if len(opening.split()) > num_words:
+            return ' '.join(opening.split()[:num_words])
+        return opening
+    return ' '.join(text.split()[:num_words])
+
+
 while True:
     posts = fetch_posts()
     if len(posts) >= 1:
@@ -32,12 +44,17 @@ while True:
                 response = like_post(post_id, email)
             decrement_likes_comments(post_id, "needed_likes")
             if needed_comments >= 1:
-                comment_on_post(space_id, post_id, email)
-                decrement_likes_comments(post_id, "needed_comments")
-                if needed_comments < 100:
-                    time.sleep(random.randint(225, 525))
-                else:
-                    time.sleep(random.randint(120, 210))
+                previous_openings = []
+                for _ in range(needed_comments):
+                    comment_body = comment_on_post(space_id, post_id, email, previous_openings=previous_openings)
+                    if comment_body:
+                        opening = extract_opening(comment_body)
+                        previous_openings.append(opening)
+                    decrement_likes_comments(post_id, "needed_comments")
+                    if needed_comments < 100:
+                        time.sleep(random.randint(225, 525))
+                    else:
+                        time.sleep(random.randint(120, 210))
                 continue
             while needed_comments >= 1 and needed_likes >= 1:
                 print(f"Likes left: {needed_likes}")
@@ -55,4 +72,3 @@ while True:
         #time.sleep(sleep_seconds)
         print(datetime.now())
         time.sleep(3600)
-        
