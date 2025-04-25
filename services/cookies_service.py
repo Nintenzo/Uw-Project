@@ -1,6 +1,5 @@
 def get_cookies(driver, x, y):
     cookies = driver.get_cookies()
-
     for cookie in cookies:
         if cookie['name'] == x:
             remember_user_token = cookie['value']

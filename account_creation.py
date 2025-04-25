@@ -8,7 +8,6 @@ import string
 import cloudscraper
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from seleniumbase import Driver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from services.warp_service import restart_warp
@@ -17,6 +16,7 @@ from services.password_service import generate_password
 from services.imgur_service import imgur_uploader
 from settings.pinterest_keywords import categories, modifiers
 from settings.cities import uscities
+from services.driver_services import create_driver
 from settings.bio_keywords import bio_words
 from identity_data import LGBT_IDENTITIES, get_pronouns
 from services.cookies_service import get_cookies
@@ -185,10 +185,6 @@ def get_username(target_identity, original_gender, csv_filepath='users.csv'):
         print(f"Error processing {csv_filepath}: {e}")
     return [selected_final_value, chosen_csv_gender, pin]
 
-def create_driver():
-    global driver
-    driver = Driver(uc=True, incognito=True, headless=True)
-    return driver
 
 def pinterest(name, gender, add, og):
     try:
@@ -349,30 +345,33 @@ def activate_user(email, pw):
                     time.sleep(0.5)
 
 def create_person():
-    while True:
+    try:
+        payload = {
+            "email": mailstring,
+            "password": pw,
+            "name": fullname,
+            "bio": bio,
+            "headline": headline,
+            "avatar": avatar,
+            "community_id": community_id,
+            "space_ids": space,
+            "skip_invitation": False,
+            "location": city
+        }
+        headers = {'Authorization': 'Token ceLDhha7NKK6QMY2LU79B6EPc7LuUfrz'}
         try:
-            payload = {
-                "email": mailstring,
-                "password": pw,
-                "name": fullname,
-                "bio": bio,
-                "headline": headline,
-                "avatar": avatar,
-                "community_id": community_id,
-                "space_ids": space,
-                "skip_invitation": False,
-                "location": city
-            }
-            headers = {'Authorization': 'Token ceLDhha7NKK6QMY2LU79B6EPc7LuUfrz'}
             response = requests.request("POST", url, headers=headers, json=payload)
-            data = response.json()
-            memeber_id = data.get('user').get('id')
-            public_uid = data.get('user').get('public_uid')
-            community_member_id = data.get('user').get('community_member_id')
-            return memeber_id, public_uid, community_member_id
-        except Exception as e:
-            print(e)
-            continue
+        except Exception:
+            time.sleep(10)
+            response = requests.request("POST", url, headers=headers, json=payload)
+        data = response.json()
+        memeber_id = data.get('user').get('id')
+        public_uid = data.get('user').get('public_uid')
+        community_member_id = data.get('user').get('community_member_id')
+        return memeber_id, public_uid, community_member_id
+    except Exception as e:
+        print(e)
+            
 
 
 conn, cursor = create_db_users()

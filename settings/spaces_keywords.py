@@ -3,6 +3,7 @@ subreddits = {
         "original": "Health",
         "context": "A hub for sharing general health advice, preventive strategies, and staying informed about overall wellness.",
         "space_id": 1996258,
+        "traffic": "high",
         "keywords": [
             "general health tips",
             "preventive care strategies",
@@ -18,6 +19,7 @@ subreddits = {
     },
     "Life With Illness": { 
         "original": "ChronicIllness", 
+        "traffic": "low",
         "context": "Support and discussion for those navigating daily life with chronic illnesses and long-term health conditions.",
         "space_id": 1996259,
         "keywords": [
@@ -35,6 +37,7 @@ subreddits = {
     },
     "Mind Matters": { 
         "original": "mentalhealth", 
+        "traffic": "high",
         "context": "Dedicated to promoting mental well-being through advice, support, and mental health resources.",
         "space_id": 1996260,
         "keywords": [
@@ -52,6 +55,7 @@ subreddits = {
     },
     "Fit Journey": { 
         "original": "Fitness", 
+        "traffic": "high",
         "context": "A community for fitness enthusiasts focused on workouts, exercise tips, and achieving personal fitness goals.",
         "space_id": 1996261,
         "keywords": [
@@ -69,6 +73,7 @@ subreddits = {
     },
     "Diabetic Support": { 
         "original": "diabetes", 
+        "traffic": "mid",
         "context": "For individuals managing diabetes, with tips on diet, insulin, and living a balanced diabetic lifestyle.",
         "space_id": 1996262,
         "keywords": [
@@ -86,6 +91,7 @@ subreddits = {
     },
     "Food For Health": { 
         "original": "nutrition", 
+        "traffic": "high",
         "context": "Focused on healthy eating habits, nutrition facts, and planning a diet for optimal health.",
         "space_id": 1996263,
         "keywords": [
@@ -102,7 +108,8 @@ subreddits = {
         ]
     },
     "Ask A Doc": { 
-        "original": "medical_advice", 
+        "original": "medical_advice",
+        "traffic": "low", 
         "context": "Get guidance on medical concerns, symptoms, and how to navigate the healthcare system.",
         "space_id": 1996264,
         "keywords": [
@@ -120,6 +127,7 @@ subreddits = {
     },
     "Overcoming Anxiety": { 
         "original": "anxiety", 
+        "traffic": "low",
         "context": "A supportive space for managing anxiety and sharing effective coping techniques and therapies.",
         "space_id": 1996265,
         "keywords": [
@@ -136,7 +144,8 @@ subreddits = {
         ]
     },
     "Keto Fuel": { 
-        "original": "keto", 
+        "original": "keto",
+        "traffic": "low", 
         "context": "All about the ketogenic lifestyle—from recipes to tracking ketosis and overcoming challenges.",
         "space_id": 1996266,
         "keywords": [
@@ -154,6 +163,7 @@ subreddits = {
     },
     "Focus With ADHD": { 
         "original": "adhd", 
+        "traffic": "low",
         "context": "Sharing experiences and tools for those with ADHD to improve focus and manage daily challenges.",
         "space_id": 1996267,
         "keywords": [
@@ -170,7 +180,8 @@ subreddits = {
         ]
     },
     "ADHD Ladies": { 
-        "original": "adhdwomen", 
+        "original": "adhdwomen",
+        "traffic": "low", 
         "context": "A women-focused ADHD support community highlighting gender-specific experiences and needs.",
         "space_id": 1996268,
         "keywords": [
@@ -188,6 +199,7 @@ subreddits = {
     },
     "Endo Support": { 
         "original": "endometriosis", 
+        "traffic": "low",
         "context": "Support, education, and resources for those affected by endometriosis and pelvic pain.",
         "space_id": 1996269,
         "keywords": [
@@ -205,6 +217,7 @@ subreddits = {
     },
     "Her Health": { 
         "original": "womenshealth", 
+        "traffic": "low",
         "context": "Covers all aspects of women's health, from menstruation to menopause and beyond.",
         "space_id": 1996270,
         "keywords": [
@@ -222,6 +235,7 @@ subreddits = {
     },
     "OBGYN Care": { 
         "original": "obgyn", 
+        "traffic": "low",
         "context": "Focused on obstetric and gynecological care, pregnancy, fertility, and reproductive health.",
         "space_id": 1996271,
         "keywords": [
@@ -239,6 +253,7 @@ subreddits = {
     },
     "Womens Wellbeing": { 
         "original": "xxhealth", 
+        "traffic": "low",
         "context": "A broader discussion space for women's physical and mental well-being and gender-based health topics.",
         "space_id": 1996272,
         "keywords": [
@@ -256,6 +271,7 @@ subreddits = {
     },
     "Flexibility Hub": { 
         "original": "flexibility", 
+        "traffic": "low",
         "context": "For improving flexibility and mobility through stretching, yoga, and movement practices.",
         "space_id": 1996273,
         "keywords": [
@@ -273,6 +289,7 @@ subreddits = {
     },
     "Migraine Relief": { 
         "original": "migraine", 
+        "traffic": "mid",
         "context": "For sharing experiences, treatment options, and support for managing migraines.",
         "space_id": 1996274,
         "keywords": [
@@ -290,6 +307,7 @@ subreddits = {
     },
     "Baby On Board": { 
         "original": "pregnant", 
+        "traffic": "mid",
         "context": "Community for expecting parents, offering advice on pregnancy stages and postpartum care.",
         "space_id": 1996275,
         "keywords": [
@@ -307,6 +325,7 @@ subreddits = {
     },
     "Chronic Support": { 
         "original": "chronicillness", 
+        "traffic": "low",
         "context": "A safe space for chronic illness support and shared lived experiences.",
         "space_id": 1996276,
         "keywords": [
@@ -324,6 +343,7 @@ subreddits = {
     },
     "Skin Care Circle": { 
         "original": "skincare", 
+        "traffic": "mid",
         "context": "A community for skincare advice, product reviews, and routines for healthy skin.",
         "space_id": 1996277,
         "keywords": [

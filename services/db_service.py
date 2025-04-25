@@ -91,31 +91,48 @@ def create_post_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         original_title TEXT,
         original_description TEXT,
-        title TEXT,
-        description TEXT,
+        ai_title TEXT,
+        ai_description TEXT,
         post_id INTEGER,
         space_id INTEGER,
-        links TEXT NOT NULL
+        links TEXT NOT NULL,
+        needed_likes INTEGER,
+        needed_comments INTEGER
     )
     """)
     return conn, cursor
 
 
-def insert_post(original_title, original_description, ai_title, ai_description, post_id, space_id, link):
+def insert_post(original_title, original_description, ai_title, ai_description, post_id, space_id, links, needed_likes, needed_comments):
     conn, cursor = create_post_db()
     try:
 
         cursor.execute("""
-        INSERT INTO spaces (original_title, original_description, ai_title, ai_description, post_id, link)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO posts (original_title, original_description, ai_title, ai_description, post_id, space_id, links, needed_likes, needed_comments)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 
-        """, (original_title, original_description, ai_title, ai_description, post_id, space_id, link))
+        """, (original_title, original_description, ai_title, ai_description, post_id, space_id, links, needed_likes, needed_comments))
         conn.commit()
         print("Data inserted successfully!")
     except sqlite3.Error as e:
         print(f"Error inserting data: {e}")
     return
 
+def fetch_posts():
+    conn, cursor = create_post_db()
+    cursor.execute("""
+    SELECT * FROM posts
+    WHERE needed_likes >= 0""")
+    result = cursor.fetchall()
+    return result
+
+def fetch_post_byID(post_id):
+    conn, cursor = create_post_db()
+    cursor.execute(f"""
+    SELECT * FROM posts
+    WHERE post_id = {post_id}""")
+    result = cursor.fetchone()
+    return result
 
 def check_if_posted(link, cursor):
     """Checks if a post with the given link and a non-null post_id exists."""
@@ -131,7 +148,48 @@ def check_if_posted(link, cursor):
         print(f"Error checking link existence: {e}")
         return False
 
+def decrement_likes_comments(post_id, value):
+    conn, cursor = create_post_db()
+    cursor.execute(f"""
+    UPDATE posts
+    SET {value} = {value} - 1
+    WHERE post_id = {post_id}
+    """)
+    conn.commit()
+    cursor.close()
+    conn.close()
 
+def get_gender(email):
+    conn = sqlite3.connect("circle_users.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT final_identity, original_identity FROM users WHERE email = ?", (email,))
+    identity = cursor.fetchall()
+    return identity
+
+def get_user_cookies(email):
+	conn, cursor = create_db_users()
+	cursor.execute("""
+		SELECT remember_user_token, user_session_identifier FROM users
+		WHERE email = ?
+	""", (email,))
+	cookies = cursor.fetchall()
+	return cookies
+
+def get_user_password(email):
+    conn = sqlite3.connect("circle_users.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT password FROM users WHERE email = ?", (email,))
+    result = cursor.fetchone()
+    return result
+
+def update_cookies(remember_user_token, user_session_identifier, email):
+    conn = sqlite3.connect("circle_users.db")
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET remember_user_token = ?, user_session_identifier = ? WHERE email = ?",
+        (remember_user_token, user_session_identifier, email))
+    conn.commit()
+    print("cookies updated")
+    return
 def get_random_user_email():
     """Fetches a random email from the users table."""
     conn = None

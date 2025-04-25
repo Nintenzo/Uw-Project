@@ -11,7 +11,7 @@ API_KEY = "ceLDhha7NKK6QMY2LU79B6EPc7LuUfr"
 BASE_URL = "https://app.circle.so/api/v1"
 COMMUNITY_ID = 337793
 PROTECTED_EMAIL = "drmario@globalmedicalinnovations.com"
-
+SPACE_LIST = [1996258, 1996259, 1996260, 1996261, 1996262, 1996263, 1996264, 1996265, 1996266, 1996267, 1996268, 1996269, 1996270, 1996271, 1996272, 1996273, 1996274, 1996275, 1996276, 1996277]
 def get_all_members():
 	page = 1
 	emails = []
@@ -63,9 +63,12 @@ def start_delete_memebers():
 
 
 def start_delete_posts(community_id, space_id):
-	url = f"https://app.circle.so/api/v1/posts?community_id={community_id}&space_id={space_id}"
-	response = requests.get(url,headers=HEADERS)
-	data = response.json()
-	for x in data:
-		response = requests.delete(f"https://app.circle.so/api/v1/posts/{x['id']}?community_id={community_id}", headers=HEADERS)
-		print(response.json())
+	for x in space_id:
+		url = f"https://app.circle.so/api/v1/posts?community_id={community_id}&space_id={x}"
+		response = requests.get(url,headers=HEADERS)
+		data = response.json()
+		for x in data:
+			response = requests.delete(f"https://app.circle.so/api/v1/posts/{x['id']}?community_id={community_id}", headers=HEADERS)
+			print(response.json())
+
+start_delete_posts(COMMUNITY_ID, SPACE_LIST)
