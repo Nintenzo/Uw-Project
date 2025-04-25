@@ -5,6 +5,7 @@ import random
 import time
 from datetime import datetime, timedelta
 
+
 def seconds_until_next_430_utc():
     now = datetime.utcnow()
     print(now)
@@ -54,5 +55,4 @@ while True:
         #time.sleep(sleep_seconds)
         print(datetime.now())
         time.sleep(3600)
-        
         

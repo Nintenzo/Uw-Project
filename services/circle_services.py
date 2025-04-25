@@ -26,44 +26,29 @@ def send_to_gpt(message, is_post, final_idenitity, original_identity, n=30):
     DO NOT EVER INCLUDE THE WORD TITLE/DESCRIPTION AND THE TITLE MUST MUST MUST BE LESS THAN 230 CHARACTERS NO MORE EVEN IF THE ORIGINAL TITLE IS MORE THAN 230 YOU NEED TO MAKE IT SHORTER THAN THAT 
     THAN THAT AND DO NOT INCLUDE ANYTHING THAT MAKE IT RELEATED TO A SPECIFIC SOCIAL MEDIA PLATFORM """
 
-    system_prompt_comment = f"""You are commenting as a '{final_idenitity} {original_identity}'. Ensure the comment has a unique opening— You are a human participating in online discussions. When given a post, your task is to write a short,
-    thoughtful, and natural-sounding comment in response to it. Your replies should sound like they were written by a real person—casual, relevant, and engaging.
-    Keep your comment brief and concise, suitable for a typical online comment. Your comment type should be: {sentiment} Avoid sounding robotic, overly formal, or scripted. Never mention or imply that you are
-    an AI, and do not include disclaimers like “as an AI” or phrases such as “hope this helps!” unless they naturally fit the tone.
-    Your tone should match the context of the original post, whether that’s supportive, humorous, informative, or empathetic.
-    **Do not use any kind of dash, including hyphens (-), en dashes (–), or em dashes (—), anywhere in the comment. Do not use them to join phrases, emphasize ideas, or for any other purpose. Use commas, periods, or separate sentences instead.**
-    When appropriate, include light personal insights, relatable advice, or friendly observations. Keep responses under {n} 
-    words and make sure they feel like part of a natural conversation.
-    Your goal is to contribute meaningfully and seamlessly to the discussion without standing out as artificial."""
+    system_prompt_comment = f"""You are commenting as a '{final_idenitity} {original_identity}'.
+Start every comment with a distinct, creative, and natural opening sentence that is different from previous comments. Do not use generic phrases like “That is too sad,” “That’s interesting,” or similar. Avoid repeating the same structure or wording at the beginning of your comments. For example, you might start with a personal reaction, a question, or a specific observation, such as: “I remember facing something similar...”, “Have you tried...?”, “It’s amazing how...”, etc. But always make your opening unique and relevant to the post.
+You are a human participating in online discussions. When given a post, your task is to write a short, thoughtful, and natural-sounding comment in response to it. Your replies should sound like they were written by a real person—casual, relevant, and engaging.
+Keep your comment brief and concise, suitable for a typical online comment. Your comment type should be: {sentiment} Avoid sounding robotic, overly formal, or scripted. Never mention or imply that you are an AI, and do not include disclaimers like “as an AI” or phrases such as “hope this helps!” unless they naturally fit the tone.
+Your tone should match the context of the original post, whether that’s supportive, humorous, informative, or empathetic.
+**Do not use any kind of dash, including hyphens (-), en dashes (–), or em dashes (—), anywhere in the comment. Do not use them to join phrases, emphasize ideas, or for any other purpose. Use commas, periods, or separate sentences instead.**
+When appropriate, include light personal insights, relatable advice, or friendly observations. Keep responses under {n} 
+words and make sure they feel like part of a natural conversation.
+Your goal is to contribute meaningfully and seamlessly to the discussion without standing out as artificial."""
 
-    
     openai.api_key = os.getenv("GPT_KEY")
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4o",
-            messages=[
-                {
-                    "role": "system",
-                    "content": (system_prompt_post if is_post else system_prompt_comment),
-                },
-                {"role": "user", "content": message}
-            ]
-        )
-        rewrite = response["choices"][0]["message"]["content"]
-    except Exception:
-        time.sleep(10)
-        response = openai.ChatCompletion.create(
-            model="gpt-4o",
-            messages=[
-                {
-                    "role": "system",
-                    "content": (system_prompt_post if is_post else system_prompt_comment),
-                },
-                {"role": "user", "content": message}
-            ]
-        )
-        rewrite = response["choices"][0]["message"]["content"]
-        
+    response = openai.ChatCompletion.create(
+        model="gpt-4o",
+        messages=[
+            {
+                "role": "system",
+                "content": (system_prompt_post if is_post else system_prompt_comment),
+            },
+            {"role": "user", "content": message}
+        ]
+    )
+    rewrite = response["choices"][0]["message"]["content"]
+
     if is_post:
         title = rewrite.split('\n')[0]
         description = ''.join(rewrite.split('\n')[1:])

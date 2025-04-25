@@ -190,6 +190,8 @@ def update_cookies(remember_user_token, user_session_identifier, email):
     conn.commit()
     print("cookies updated")
     return
+
+
 def get_random_user_email():
     """Fetches a random email from the users table."""
     conn = None
@@ -205,6 +207,21 @@ def get_random_user_email():
             return None
     except sqlite3.Error as e:
         print(f"Database error fetching random email: {e}")
+        return None
+    finally:
+        if conn:
+            conn.close()
+
+
+def get_users_count():
+    try:
+        conn = sqlite3.connect("circle_users.db")
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT COUNT(*) FROM users")
+        count = cursor.fetchone()[0]
+        return count
+    except sqlite3.Error as e:
+        print(f"Database error: {e}")
         return None
     finally:
         if conn:
