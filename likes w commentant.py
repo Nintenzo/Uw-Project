@@ -25,8 +25,8 @@ def like_comment_sum(posts):
     total_time_seconds = 21 * 60 * 60
     average_sleep_time = total_time_seconds // total_interactions
     percentage = random.uniform(-0.3, 0.3)
-    average_sleep_time = int(average_sleep_time * (1 + percentage))  # Adjust sleep time
-    return 
+    average_sleep_time = int(average_sleep_time * (1 + percentage))
+    return average_sleep_time
 
 while True:
     posts = fetch_posts()

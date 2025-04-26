@@ -3,6 +3,7 @@ from services.db_service import get_random_user_email, create_post_db, check_if_
 from datetime import datetime, timedelta
 import schedule
 import time
+import os
 import praw
 import random
 from dotenv import load_dotenv
@@ -15,10 +16,10 @@ max_post = 18
 
 def setup_scrapper():
     reddit = praw.Reddit(
-        client_id='eO2afxALnHOM8kvjP0QhxA',
-        client_secret='tqLAHXpB4rfsRnsyV6WVtrxcp9MK2g',
-        user_agent='my_reddit_scraper_by_u/Ninntendo_Kid33'
-    )
+        client_id = os.getenv('CLIENT_ID'),
+        client_secret = os.getenv('CLIENT_SECRET'),
+        user_agent = os.getenv('USER_AGENT'),
+	)
     return reddit
 
 
@@ -115,7 +116,7 @@ def sleep_until_4am():
         print(f"Current time is {now}. It's already past 04:00, starting schedule immediately.")
 
 schedule.every().day.at("04:00").do(main)
-main()
+
 while True:
     schedule.run_pending()
     sleep_until_4am()

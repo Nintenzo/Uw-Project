@@ -1,6 +1,5 @@
 import sqlite3
 
-
 def create_db_users():
     conn = sqlite3.connect("circle_users.db")
     cursor = conn.cursor()
@@ -75,7 +74,7 @@ def insert_space(space_name, original, space_id, keywords, context):
 
 
 def fetch_spaces_id(x):
-    conn = sqlite3.connect("spaces.db")
+    conn, cursor = create_db_space()
     cursor = conn.cursor()
     data = cursor.execute(f"""
     SELECT {x} FROM spaces
@@ -158,9 +157,9 @@ def decrement_likes_comments(post_id, value):
     conn.commit()
     cursor.close()
     conn.close()
-
+    
 def get_gender(email):
-    conn = sqlite3.connect("circle_users.db")
+    conn, cursor = create_db_users()
     cursor = conn.cursor()
     cursor.execute("SELECT final_identity, original_identity FROM users WHERE email = ?", (email,))
     identity = cursor.fetchall()
@@ -176,14 +175,14 @@ def get_user_cookies(email):
 	return cookies
 
 def get_user_password(email):
-    conn = sqlite3.connect("circle_users.db")
+    conn, cursor = create_db_users()
     cursor = conn.cursor()
     cursor.execute("SELECT password FROM users WHERE email = ?", (email,))
     result = cursor.fetchone()
     return result
 
 def update_cookies(remember_user_token, user_session_identifier, email):
-    conn = sqlite3.connect("circle_users.db")
+    conn, cursor = create_db_users()
     cursor = conn.cursor()
     cursor.execute("UPDATE users SET remember_user_token = ?, user_session_identifier = ? WHERE email = ?",
         (remember_user_token, user_session_identifier, email))
@@ -196,7 +195,7 @@ def get_random_user_email():
     """Fetches a random email from the users table."""
     conn = None
     try:
-        conn = sqlite3.connect("circle_users.db")
+        conn, cursor = create_db_users()
         cursor = conn.cursor()
         cursor.execute("SELECT email FROM users ORDER BY RANDOM() LIMIT 1")
         result = cursor.fetchone()
@@ -215,7 +214,7 @@ def get_random_user_email():
 
 def get_users_count():
     try:
-        conn = sqlite3.connect("circle_users.db")
+        conn, cursor = create_db_users()
         cursor = conn.cursor()
         cursor.execute(f"SELECT COUNT(*) FROM users")
         count = cursor.fetchone()[0]
