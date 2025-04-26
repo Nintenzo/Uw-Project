@@ -27,8 +27,7 @@ def main():
     scraped = 0
     reddit = setup_scrapper()
     conn, cursor = create_post_db()
-    # get_subs() now returns {subreddit_name: num_posts}
-    subs_post_plan = get_subs()
+    subs_post_plan, avg_sleep_time = get_subs()
     print(f"Subreddits to scrape: {subs_post_plan}")
     for sub_key, num_posts in subs_post_plan.items():
         if sub_key not in all_subreddits:
@@ -82,9 +81,9 @@ def main():
                         except Exception as e:
                             print(f"Error during Circle processing/posting: {e}")
                         print("--- Done with this keyword ---")
-                        sleep = random.randint(1200, 5400)
-                        time.sleep(sleep)
-                        scraped += 1
+                        sleep_time = random.randint(avg_sleep_time - 900, avg_sleep_time + 250)
+                        print(sleep_time)
+                        time.sleep(sleep_time)
                         break
             except praw.exceptions.PRAWException as e:
                 print(f"Error accessing subreddit {original_subreddit_name}: {e}")
@@ -100,16 +99,13 @@ def main():
 
 def sleep_until_4am():
     now = datetime.now()
-    # Get today's 04:00
     today_4am = now.replace(hour=4, minute=0, second=0, microsecond=0)
     
-    # If current time is past 04:00, set target to tomorrow's 04:00
     if now > today_4am:
         target = today_4am + timedelta(days=1)
     else:
         target = today_4am
     
-    # Calculate seconds to sleep
     sleep_seconds = (target - now).total_seconds()
     if sleep_seconds > 0:
         print(f"Current time is {now}. Sleeping for {sleep_seconds} seconds until {target}...")
@@ -118,10 +114,8 @@ def sleep_until_4am():
     else:
         print(f"Current time is {now}. It's already past 04:00, starting schedule immediately.")
 
-
-main()
 schedule.every().day.at("04:00").do(main)
-
+main()
 while True:
     schedule.run_pending()
     sleep_until_4am()

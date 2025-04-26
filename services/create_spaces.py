@@ -8,15 +8,6 @@ key = os.getenv("CIRCLE_API")
 headers = {'Authorization': f'Token {key}'}
 community_id = os.getenv("COMMUNITY_ID")
 
-def delete_spaces():
-    url = f"https://app.circle.so/api/v1/spaces?community_id={community_id}&sort=active&per_page=25"
-    response = requests.get(url,headers=headers)
-    response = response.json()
-    for x , y in enumerate(response):
-        url = f"https://app.circle.so/api/v1/spaces/{response[x].get('id')}/"
-        data = requests.delete(url,headers=headers)
-        print(data.json())
-
 def create_spaces():
     for x in subreddits:
         keywords = ""
@@ -35,4 +26,3 @@ def create_spaces():
         id = data.get("space").get("id")
         insert_space(space_name=x, original=original, space_id=id, keywords=keywords,context=context)
 
-create_spaces()
