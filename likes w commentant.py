@@ -63,6 +63,6 @@ while True:
                     response = like_post(post_id, email)
                 decrement_likes_comments(post_id, "needed_likes")
                 needed_likes = fetch_post_byID(post_id)[8]
-    else:       
+    else:
         print(datetime.now())
         time.sleep(3600)
