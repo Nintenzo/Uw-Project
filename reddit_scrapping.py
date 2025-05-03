@@ -119,7 +119,7 @@ def sleep_until_4am():
         print(f"Current time is {now}. It's already past 04:00, starting schedule immediately.")
 
 schedule.every().day.at("04:00").do(main)
-main()
+
 while True:
     schedule.run_pending()
     sleep_until_4am()

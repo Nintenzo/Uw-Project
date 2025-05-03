@@ -14,7 +14,7 @@ from services.warp_service import restart_warp
 from services.db_service import create_db_users, insert_users, fetch_spaces_id
 from services.password_service import generate_password
 from services.imgur_service import imgur_uploader
-from settings.pinterest_keywords import categories, modifiers
+from settings.pinterest_keywords import pinterest_keywords
 from settings.cities import uscities
 from services.driver_services import create_driver
 from settings.bio_keywords import bio_words
@@ -22,13 +22,15 @@ from identity_data import LGBT_IDENTITIES, get_pronouns
 from services.cookies_service import get_cookies
 from dotenv import load_dotenv
 load_dotenv()
-
+csv.field_size_limit(3828443) 
 scraper = cloudscraper.create_scraper()
 url = "https://app.circle.so/api/v1/community_members"
 community_id = os.getenv("COMMUNITY_ID")
 spaces = fetch_spaces_id("space_id").fetchall()
 space = []
-
+all_rows_read = []
+chosen_row_index_in_original = None
+csv_filepath = 'users.csv'
 for x in spaces:
     space.append(x[0])
 def randomize_first_letter_case(text):
@@ -99,12 +101,14 @@ def get_bio(input1):
     return request.get('results')[random.randint(1,2)][3:]
 
 
-def get_username(target_identity, original_gender, csv_filepath='users.csv'):
+def get_username(target_identity, original_gender):
     """Gets a name/username, filtering CSV based on target identity. If no match, tries the other gender."""
+    global all_rows_read, chosen_row_index_in_original
     selected_final_value = None
     chosen_csv_gender = None
     pin = False
     all_rows_read = []
+    
 
     def filter_rows(target_identity_cap, original_gender_cap):
         filtered = []
@@ -158,10 +162,6 @@ def get_username(target_identity, original_gender, csv_filepath='users.csv'):
                     selected_final_value = name
                     pin = True
                     print(f"Using full name from CSV: {selected_final_value}")
-                del all_rows_read[chosen_row_index_in_original]
-                with open(csv_filepath, 'w', newline='', encoding='utf-8') as f:
-                    writer = csv.writer(f)
-                    writer.writerows(all_rows_read)
             else:
                 print(f"Warning: No CSV rows match target identity '{target_identity}' or fallback gender.")
         else:
@@ -171,13 +171,12 @@ def get_username(target_identity, original_gender, csv_filepath='users.csv'):
     return [selected_final_value, chosen_csv_gender, pin]
 
 
+
 def pinterest(name, gender, add, og):
     try:
-        pinterest_keywords = [f"{cat} {mod}" for cat in categories for mod in modifiers]
         driver = create_driver()
         WebDriverWait(driver, 60)
         key = random.choices([random.choice(pinterest_keywords), name], [0.6, 0.4])[0]
-        
         if add:
             search = f"{key} {gender}"
             print(f"Searching Pinterest for: {search}")
@@ -203,7 +202,10 @@ def pinterest(name, gender, add, og):
                         n = random.choice(numbers)
                         numbers.remove(n)
                         images = images_containers[n].find_elements(By.TAG_NAME, "img")
-                        image_urls.extend([img.get_attribute("src") for img in images if img.get_attribute("src")])
+                        try:
+                            image_urls.extend([img.get_attribute("src") for img in images if img.get_attribute("src")])
+                        except Exception as e:
+                            pass
                     else:
                         print("No image containers found.")
             except Exception as e:
@@ -221,6 +223,15 @@ def pinterest(name, gender, add, og):
         print(f"Error: {e}")
         time.sleep(1)
         pinterest(name, gender, add, og)
+
+def delete_row_from_csv(all_rows_read, chosen_row_index_in_original):
+    """Deletes the selected row from the list and updates the CSV file."""
+    del all_rows_read[chosen_row_index_in_original]
+    with open(csv_filepath, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerows(all_rows_read)
+        print(f"Deleted row {chosen_row_index_in_original} from {csv_filepath}.")
+    return
 
 def get_job(scraper):
     while True:
@@ -304,6 +315,7 @@ def get_mail(x=None):
         return ''.join(reg)
 
 def activate_user(email, pw):
+    global count
     print("Activating Account")
     driver.switch_to.window(circle)
     emailform = wait.until(EC.visibility_of_element_located((By.NAME, "user[email]")))
@@ -326,6 +338,7 @@ def activate_user(email, pw):
                     if current_url == "https://tubiit.circle.so/feed":
                         remember_user_token, user_session_identifier = get_cookies(driver, "remember_user_token","user_session_identifier")
                         driver.quit()
+                        count += 1
                         return remember_user_token, user_session_identifier
                     time.sleep(0.5)
 
@@ -353,6 +366,7 @@ def create_person():
         memeber_id = data.get('user').get('id')
         public_uid = data.get('user').get('public_uid')
         community_member_id = data.get('user').get('community_member_id')
+        delete_row_from_csv(all_rows_read, chosen_row_index_in_original)
         return memeber_id, public_uid, community_member_id
     except Exception as e:
         print(e)
@@ -363,7 +377,6 @@ conn, cursor = create_db_users()
 count = 0
 while True:
     try:
-        count += 1
         fullname, scraped_gender, identity, bio, headline, city, avatar, pronouns = scrap_person_data()
         print(f"Chosen Name: {fullname}, Scraped Gender: {scraped_gender}, Final Identity: {identity}")
         mailstring = get_mail(x="mail")
@@ -372,6 +385,9 @@ while True:
         remember_user_token, user_session_identifier = activate_user(email=mailstring, pw=pw)
         insert_users(fullname, mailstring, pw, final_identity, original_gender, pronouns, bio, headline, city, avatar, remember_user_token, user_session_identifier, memeber_id, public_uid, community_member_id)
         print(count)
+        if count >= 10:
+            print("10 accounts created")
+            break
     except Exception as e:
         print(e)
         try:

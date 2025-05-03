@@ -23,3 +23,5 @@ modifiers = [
     "cool pfp", "funny avatar", "moody pfp", "soft pfp", "stylish pfp",
     "anime boy icon", "anime girl pfp", "irl profile pic"
 ]
+
+pinterest_keywords = [f"{cat} {mod}" for cat in categories for mod in modifiers]
