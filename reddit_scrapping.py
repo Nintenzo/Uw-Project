@@ -15,12 +15,13 @@ count = 0
 max_post = 18
 
 def setup_scrapper():
-    reddit = praw.Reddit(
-        client_id = os.getenv('CLIENT_ID'),
-        client_secret = os.getenv('CLIENT_SECRET'),
-        user_agent = os.getenv('USER_AGENT'),
-	)
-    return reddit
+     reddit = praw.Reddit(
+         client_id= os.getenv('CLIENT_ID'),
+         client_secret= os.getenv('CLIENT_SECRET'),
+         user_agent= os.getenv('USER_AGENT'),
+     )
+ 
+     return reddit
 
 
 def main():
@@ -72,13 +73,15 @@ def main():
                                 print("Error: Could not fetch random email. Skipping post.")
                                 continue
                             print(f"Processing and Posting to Circle using email: {random_email}...")
-                            create_post(
+                            status = create_post(
                                 space_id = space_id,
                                 email = random_email,
                                 title = original_title,
                                 description = original_description,
                                 url = reddit_link
                             )
+                            if status == "false":
+                                continue
                         except Exception as e:
                             print(f"Error during Circle processing/posting: {e}")
                         print("--- Done with this keyword ---")
@@ -116,7 +119,7 @@ def sleep_until_4am():
         print(f"Current time is {now}. It's already past 04:00, starting schedule immediately.")
 
 schedule.every().day.at("04:00").do(main)
-
+main()
 while True:
     schedule.run_pending()
     sleep_until_4am()

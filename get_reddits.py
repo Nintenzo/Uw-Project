@@ -9,7 +9,6 @@ def get_subs():
 
     variation = random.choice([-3, -2, -1, 0, 1, 2, 3])
     daily_posts = max(6, min(15, daily_posts + variation))
-
     high_traffic = [name for name, data in subreddits.items() if data["traffic"] == "high"]
     mid_traffic = [name for name, data in subreddits.items() if data["traffic"] == "mid"]
     low_traffic = [name for name, data in subreddits.items() if data["traffic"] == "low"]
@@ -29,8 +28,7 @@ def get_subs():
                 if post_plan[sub] > 0 and total > daily_posts:
                     post_plan[sub] -= 1
                     total -= 1
-
-    elif total < daily_posts:
+    while total < daily_posts:
         for tier in [high_traffic, mid_traffic, low_traffic]:
             for sub in random.sample(tier, len(tier)):
                 if total < daily_posts:

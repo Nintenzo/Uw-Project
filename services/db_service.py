@@ -121,7 +121,7 @@ def fetch_posts():
     conn, cursor = create_post_db()
     cursor.execute("""
     SELECT * FROM posts
-    WHERE needed_likes >= 0""")
+    WHERE needed_likes > 0""")
     result = cursor.fetchall()
     return result
 

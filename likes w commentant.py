@@ -46,6 +46,7 @@ while True:
                 email = get_random_user_email()
                 response = like_post(post_id, email)
             decrement_likes_comments(post_id, "needed_likes")
+                 
             if needed_comments >= 1:
                 comment_body = comment_on_post(space_id, post_id, email, previous_openings=previous_openings)
                 if comment_body:
