@@ -1,6 +1,6 @@
 from services.circle_services import create_post
 from services.db_service import get_random_user_email, create_post_db, check_if_posted
-from datetime import datetime, timedelta
+from services.until4am import sleep_until_4am
 import schedule
 import time
 import os
@@ -101,25 +101,9 @@ def main():
         conn.close()
 
 
-def sleep_until_4am():
-    now = datetime.now()
-    today_4am = now.replace(hour=4, minute=0, second=0, microsecond=0)
-
-    if now > today_4am:
-        target = today_4am + timedelta(days=1)
-    else:
-        target = today_4am
-
-    sleep_seconds = (target - now).total_seconds()
-    if sleep_seconds > 0:
-        print(f"Current time is {now}. Sleeping for {sleep_seconds} seconds until {target}...")
-        time.sleep(sleep_seconds)
-        time.sleep(10)
-    else:
-        print(f"Current time is {now}. It's already past 04:00, starting schedule immediately.")
 
 schedule.every().day.at("04:00").do(main)
 
 while True:
     schedule.run_pending()
-    sleep_until_4am()
+    time.sleep(sleep_until_4am(isprint=True))

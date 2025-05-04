@@ -1,4 +1,5 @@
 from services.db_service import fetch_posts, get_random_user_email, decrement_likes_comments, fetch_post_byID
+from services.until4am import sleep_until_4am
 from services.circle_services import like_post, comment_on_post
 import random
 import time
@@ -22,7 +23,8 @@ def like_comment_sum(posts):
         total_likes += post[8]
         total_comments += post[9]
     total_interactions = total_likes + total_comments
-    total_time_seconds = 21 * 60 * 60
+    hour = (sleep_until_4am() / 60 / 60 )
+    total_time_seconds = hour * 60 * 60
     average_sleep_time = total_time_seconds // total_interactions
     percentage = random.uniform(-0.3, 0.3)
     average_sleep_time = int(average_sleep_time * (1 + percentage))
