@@ -12,7 +12,7 @@ from settings.cities import uscities
 from settings.bio_keywords import bio_words
 from services.pinterest_api import get_img
 from identity_data import LGBT_IDENTITIES, get_pronouns
-from activator_service import send_otp
+from services.activator_service import send_otp
 from services.create_email import create_email
 from dotenv import load_dotenv
 

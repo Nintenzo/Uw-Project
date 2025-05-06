@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 import requests
-from activator_service import send_otp
+from services.activator_service import send_otp
 from services.password_service import generate_password
 load_dotenv()
 url = "https://app.circle.so/api/v1/community_members"
