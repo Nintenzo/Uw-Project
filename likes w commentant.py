@@ -31,41 +31,45 @@ def like_comment_sum(posts):
     return average_sleep_time
 
 while True:
-    posts = fetch_posts()
-    previous_openings = []
-    if len(posts) >= 1:
-        average_sleep_time = like_comment_sum(posts)
-        for x in posts:
-            print(average_sleep_time)
-            email = get_random_user_email()
-            print('emailed changed')
-            post_id = x[5]
-            space_id = x[6]
-            needed_likes = x[8]
-            needed_comments = x[9]
-            response = like_post(post_id, email)
-            while response['message'] != "Post has been liked":
+    try:
+        posts = fetch_posts()
+        previous_openings = []
+        if len(posts) >= 1:
+            average_sleep_time = like_comment_sum(posts)
+            for x in posts:
+                print(average_sleep_time)
                 email = get_random_user_email()
-                response = like_post(post_id, email)
-            decrement_likes_comments(post_id, "needed_likes")
-                 
-            if needed_comments >= 1:
-                comment_body = comment_on_post(space_id, post_id, email, previous_openings=previous_openings)
-                if comment_body:
-                    opening = extract_opening(comment_body)
-                    previous_openings.append(opening)
-                decrement_likes_comments(post_id, "needed_comments")
-                time.sleep(average_sleep_time)
-                continue
-            while needed_comments <= 0 and needed_likes >= 1:
-                print(f"Likes left: {needed_likes}")
-                email = get_random_user_email()
+                print('emailed changed')
+                post_id = x[5]
+                space_id = x[6]
+                needed_likes = x[8]
+                needed_comments = x[9]
                 response = like_post(post_id, email)
                 while response['message'] != "Post has been liked":
                     email = get_random_user_email()
                     response = like_post(post_id, email)
                 decrement_likes_comments(post_id, "needed_likes")
-                needed_likes = fetch_post_byID(post_id)[8]
-    else:
-        print(datetime.now())
-        time.sleep(3600)
+                    
+                if needed_comments >= 1:
+                    comment_body = comment_on_post(space_id, post_id, email, previous_openings=previous_openings)
+                    if comment_body:
+                        opening = extract_opening(comment_body)
+                        previous_openings.append(opening)
+                    decrement_likes_comments(post_id, "needed_comments")
+                    time.sleep(average_sleep_time)
+                    continue
+                while needed_comments <= 0 and needed_likes >= 1:
+                    print(f"Likes left: {needed_likes}")
+                    email = get_random_user_email()
+                    response = like_post(post_id, email)
+                    while response['message'] != "Post has been liked":
+                        email = get_random_user_email()
+                        response = like_post(post_id, email)
+                    decrement_likes_comments(post_id, "needed_likes")
+                    needed_likes = fetch_post_byID(post_id)[8]
+        else:
+            print(datetime.now())
+            time.sleep(3600)
+    except Exception:
+        time.sleep(120)
+        

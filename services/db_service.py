@@ -35,7 +35,7 @@ def insert_users(name, email, password, final_identity, original_identity, prono
 
         """, (name, email, password, final_identity, original_identity, pronouns, bio, headline, location, avatar, remember_user_token, user_session_identifier, memeber_id, public_uid, community_member_id ))
         conn.commit()
-        print("Data inserted successfully!")
+        #print("Data inserted successfully!")
     except sqlite3.Error as e:
         print(f"Error inserting data: {e}")
     return

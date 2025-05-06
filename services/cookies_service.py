@@ -1,8 +1,7 @@
-def get_cookies(driver, x, y):
+def get_cookies(driver, x):
     cookies = driver.get_cookies()
+    cookies_list = []
     for cookie in cookies:
-        if cookie['name'] == x:
-            remember_user_token = cookie['value']
-        elif cookie['name'] == y:
-            user_session_identifier = cookie['value']
-    return remember_user_token, user_session_identifier
+        if cookie['name'] in x:
+            cookies_list.append(cookie['value'])
+    return cookies_list

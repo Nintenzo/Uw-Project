@@ -1,18 +1,9 @@
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
-from services.cookies_service import get_cookies
-from services.db_service import get_user_cookies, get_user_password, update_cookies
-from services.driver_services import create_driver
-from selenium.webdriver.support.ui import WebDriverWait
-import requests
+from services.db_service import get_user_password
 import time
-
+import requests
 def last_seen(email):
     try:
-        cookies = get_user_cookies(email)
-        remember_user_token = cookies[0][0]
-        user_session_identifier = cookies[0][1]
+        remember_user_token, user_session_identifier = fresh_cookies(email)
         url = "https://tubiit.circle.so/feed"
         cookies = {
             "remember_user_token": remember_user_token,
@@ -27,25 +18,27 @@ def last_seen(email):
         print("last seen mimicked")
         return
     except Exception:
-        selenium_seen(email)
+        pass
 
-
-def selenium_seen(email):
-    driver = create_driver()
-    wait = WebDriverWait(driver, 60)
+def fresh_cookies(email):
     pw = get_user_password(email)[0]
-    driver.get("https://login.circle.so/sign_in?request_host=app.circle.so#email")
-    emailform = wait.until(EC.visibility_of_element_located((By.NAME, "user[email]")))
-    emailform.send_keys(email)
-    password = wait.until(EC.visibility_of_element_located((By.NAME, "user[password]")))
-    password.send_keys(pw)
-    password.send_keys(Keys.ENTER)
-    while True:
-        current_url = driver.current_url
-        if current_url == "https://tubiit.circle.so/feed":
-            remember_user_token, user_session_identifier = get_cookies(driver, "remember_user_token","user_session_identifier")
-            driver.quit()
-            print("last seen mimicked")
-            update_cookies(remember_user_token, user_session_identifier, email)
-            return
-        time.sleep(0.5)
+    payload = {
+        "user": {
+            "email": email,
+            "password": pw,
+            "community_id": ''
+        },
+        "source": None,
+        "chat_bot_session_id": ""
+    }
+
+    session = requests.Session()
+    link = "https://login.circle.so/sign_in?"
+    session.headers.update({
+            "accept": "application/json",
+        })
+    response = session.post(link, json=payload)
+    print(response.text)
+    link = response.json()['redirect_url']
+    session.get(link, json=payload)
+    return session.cookies['remember_user_token'], session.cookies['user_session_identifier']
