@@ -28,6 +28,7 @@ chosen_row_index_in_original = None
 csv_filepath = 'users.csv'
 for x in spaces:
     space.append(x[0])
+
 def randomize_first_letter_case(text):
     if not text:
         return ""

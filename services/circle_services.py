@@ -27,7 +27,7 @@ def send_to_gpt(message, is_post, final_idenitity, original_identity, n=30, prev
     Ensure the content is rephrased and structured differently, maintaining clarity and relevance, 
     without adding any labels Such as Title: or Description: only the content straight away or any extra commentary.
     DO NOT EVER INCLUDE THE WORD TITLE/DESCRIPTION AND THE TITLE MUST MUST MUST BE LESS THAN 230 CHARACTERS NO MORE EVEN IF THE ORIGINAL TITLE IS MORE THAN 230 YOU NEED TO MAKE IT SHORTER THAN THAT 
-    THAN THAT AND DO NOT INCLUDE ANYTHING THAT MAKE IT RELEATED TO A SPECIFIC SOCIAL MEDIA PLATFORM IMPORT NOTE IF THE DESCIRPTION I PROVIDED IS EMPTY TRY TO CREATE A DESCRIPTION YOURSELF IF YOU CAN'T THEN JUST RETURN FALSE IN ALL 3 LINES
+    THAN THAT AND DO NOT INCLUDE ANYTHING THAT MAKE IT RELEATED TO A SPECIFIC SOCIAL MEDIA PLATFORM IMPORT NOTE IF THE DESCIRPTION I PROVIDED IS EMPTY THEN ADD IN THE DESCRIPTION THE EXTERNAL LINK ONLY IF THERE IS NO EXTERNAL LINK PROVIDED THEN JUST RETURN FALSE IN ALL 3 LINES
     """
 
     spelling = random.choices(["True", "False"], [0.75, 0.25])
@@ -47,14 +47,15 @@ def send_to_gpt(message, is_post, final_idenitity, original_identity, n=30, prev
     such as: “I remember facing something similar...”, “Have you tried...?”, “It’s amazing how...”, etc. But always make your opening unique and relevant to the post.
     You are a human participating in online discussions. When given a post, your task is to write a short, thoughtful, and natural-sounding comment in response to it. 
     Your replies should sound like they were written by a real person—casual, relevant, and engaging.
-    Keep your comment brief and concise, suitable for a typical online comment. Your comment type should be: {sentiments} and it should be 100% {comment_type} You can use slang language Avoid sounding robotic,
+    Keep your comment brief and concise, suitable for a typical online comment. Your comment type should be: {sentiments} and it should be 100% {comment_type} You can use slang language like Avoid sounding robotic,
     overly formal, or scripted. Never mention or imply that you are an AI, and do not include disclaimers like “as an AI” or phrases such as “hope this helps!” unless they naturally fit the tone.
     Your tone should match the context of the original post, whether that’s supportive, humorous, informative, or empathetic.
     **Do not use any kind of dash, including hyphens (-), en dashes (–), or em dashes (—), anywhere in the comment. Do not use them to join phrases, emphasize ideas,
     or for any other purpose. Use commas, periods, or separate sentences instead.**
     When appropriate, include light personal insights, relatable advice, or friendly observations. Keep responses under {n} 
     words and make sure they feel like part of a natural conversation.
-    Your goal is to contribute meaningfully and seamlessly to the discussion without standing out as artificial."""
+    Your goal is to contribute meaningfully and seamlessly to the discussion without standing out as artificial.
+    You are allowed to use the web tool to access the links I provided to access the text content inside it"""
 
     # Add-on behaviors
     spelling_mistakes = "YOU MUST HAVE SPELLING MISTAKES"
@@ -176,7 +177,7 @@ def assign_comments(sen, needed_likes):
     elif sen == "polls" or sen == "hot":
         return needed_likes * random.uniform(0.20, 0.30)
    
-def create_post(space_id, email, title, description, url):
+def create_post(space_id, email, title, description, external_link, url):
     
     gender = get_gender(email)
     final_idenitity = gender[0][0]
@@ -184,14 +185,12 @@ def create_post(space_id, email, title, description, url):
     message = f"""
     Title: {title}
     Description: {description}
+    External_Link: {external_link}
     """
     original_title = title
     original_description = description
     circle_url = "https://app.circle.so/api/v1/posts?"
     sen, title, description = send_to_gpt(message=message, is_post=True, final_idenitity=final_idenitity, original_identity=original_identity)
-    if sen.lower().strip() == "false":
-        print("GPT returned false, skipping post creation.")
-        return "false"
     payload = {
                 "space_id": space_id,
                 "community_id": os.getenv("COMMUNITY_ID"),
@@ -210,7 +209,7 @@ def create_post(space_id, email, title, description, url):
     if response.status_code == 200:
         print("Post Created")
         last_seen(email)
-        data = response.json()
+        data = response.json() 
         post_id = data['post']['id']
         needed_likes = random.randint(60, 400)
         try:
@@ -222,4 +221,5 @@ def create_post(space_id, email, title, description, url):
             print("Error during comment assignment")
             return "false"
         insert_post(original_title, original_description, title, description, post_id, space_id, url, needed_likes=needed_likes, needed_comments=needed_comments)
+        time.sleep(23223)
         return "not false"

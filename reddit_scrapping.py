@@ -36,6 +36,7 @@ def main():
             print(f"Skipping {sub_key} - not found in all_subreddits.")
             continue
         sub_data = all_subreddits[sub_key]
+        sub_data = all_subreddits['Life With Illness']
         original_subreddit_name = sub_data.get('original')
         space_id = sub_data.get('space_id', 9999)
         keywords = sub_data.get('keywords', [])
@@ -55,6 +56,14 @@ def main():
                     for post in subreddit.search(keyword, sort=random.choice(["new", "relevance"])):
                         reddit_link = post.permalink
                         original_title = post.title
+                        try:
+                            external_link = post.url
+                        except Exception:
+                            external_link = None
+                        startwith = ("https://www.reddit.com",'https://preview.redd.it/','https://i.redd.it/')
+                        if external_link.startswith(startwith):
+                            external_link = None
+
                         original_description = post.selftext
                         author = post.author.name if post.author else "[deleted]"
                         post_info = f"-- Found Post: {original_title}"
@@ -78,6 +87,7 @@ def main():
                                 email = random_email,
                                 title = original_title,
                                 description = original_description,
+                                external_link = external_link,
                                 url = reddit_link
                             )
                             if status == "false":
@@ -87,7 +97,7 @@ def main():
                         print("--- Done with this keyword ---")
                         sleep_time = random.randint(avg_sleep_time - 900, avg_sleep_time + 250)
                         print(sleep_time)
-                        time.sleep(sleep_time)
+                        #time.sleep(sleep_time)
                         break
             except praw.exceptions.PRAWException as e:
                 print(f"Error accessing subreddit {original_subreddit_name}: {e}")
@@ -101,7 +111,7 @@ def main():
         conn.close()
 
 
-
+main()
 schedule.every().day.at("04:00").do(main)
 
 while True:

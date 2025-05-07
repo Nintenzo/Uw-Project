@@ -1,3 +1,8 @@
 .vscode
 .env
 *.pyc
+sendergpt.py
+send.py
+typer.py
+circle_deleter.py
+unknown_remover.py

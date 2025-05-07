@@ -56,7 +56,7 @@ while True:
                         opening = extract_opening(comment_body)
                         previous_openings.append(opening)
                     decrement_likes_comments(post_id, "needed_comments")
-                    time.sleep(average_sleep_time)
+                    #time.sleep(average_sleep_time)
                     continue
                 while needed_comments <= 0 and needed_likes >= 1:
                     print(f"Likes left: {needed_likes}")
@@ -69,7 +69,7 @@ while True:
                     needed_likes = fetch_post_byID(post_id)[8]
         else:
             print(datetime.now())
-            time.sleep(3600)
+            #time.sleep(3600)
     except Exception as e:
         print(e)
         time.sleep(120)
