@@ -1,8 +1,6 @@
 import requests
 import random
 import json
-import time
-import string
 from settings.pinterest_keywords import pinterest_keywords
 
 def get_img(name, gender, add, og):

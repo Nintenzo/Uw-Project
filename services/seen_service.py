@@ -38,7 +38,6 @@ def fresh_cookies(email):
             "accept": "application/json",
         })
     response = session.post(link, json=payload)
-    print(response.text)
     link = response.json()['redirect_url']
     session.get(link, json=payload)
     return session.cookies['remember_user_token'], session.cookies['user_session_identifier']

@@ -76,4 +76,4 @@ def get_messages(payload):
             return code
         except Exception:
             time.sleep(3)
-    return code
+    return ""

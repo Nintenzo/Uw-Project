@@ -70,6 +70,7 @@ while True:
         else:
             print(datetime.now())
             time.sleep(3600)
-    except Exception:
+    except Exception as e:
+        print(e)
         time.sleep(120)
         

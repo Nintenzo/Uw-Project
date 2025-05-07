@@ -176,7 +176,7 @@ def delete_row_from_csv(all_rows_read, chosen_row_index_in_original):
     with open(csv_filepath, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerows(all_rows_read)
-        print(f"Deleted row {chosen_row_index_in_original} from {csv_filepath}.")
+        #print(f"Deleted row {chosen_row_index_in_original} from {csv_filepath}.")
     return
 
 def get_job(scraper):
@@ -287,7 +287,7 @@ while True:
         count += 1
         print(f"{count}/{accounts_to_create}")
         if count >= accounts_to_create:
-            print(f"{accounts_to_create} accounts created")
+            print(f"{count}/{accounts_to_create}accounts created")
             break
     except Exception as e:
         print(e)
