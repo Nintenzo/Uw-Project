@@ -40,10 +40,7 @@ def get_img(name, gender, add, og):
     img = response.json()
     img_list = []
     if img["resource_response"]["data"]["results"]:
-        import time
         for x in img["resource_response"]["data"]["results"]:
-            print(x)
-            time.sleep(3232323)
             img_list.append(x["images"]["474x"]["url"])
             if len(img_list) >= 10:
                 break
